@@ -1,3 +1,4 @@
+package main;
 public class Event {
     public String time;
     public int floor;

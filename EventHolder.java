@@ -1,4 +1,4 @@
-
+package main;
 /**
  * EventHolder, holds messages and data from the floor elevator and scheduler.
  * the put and get methods need internal logic to put data and messages into the right variable.
@@ -9,6 +9,9 @@ public class EventHolder
     private Object elevatorData = null; // data from the elevator
     private Object floorMessage = null; // message for the Floor
     private Object elevatorMessage = null; //message for the Elevator
+    //putData and putmsg used for testing put method
+    private Object putData = null;
+    private Object putMessage = null;
     private boolean empty = true; // empty?
     /**
      * put executes for both the Floor and Elevator, internal logic is needed to know where to put the data
@@ -22,6 +25,8 @@ public class EventHolder
                 return;
             }
         }
+        //put Data used for testing, check against floordata and elevatorData
+        putData = item;
         if (Thread.currentThread().getName() == "Floor") {
             floorData = item;
         }
@@ -46,6 +51,7 @@ public class EventHolder
                 return;
             }
         }
+        putMessage = item;
         if (to == "Floor") {
             floorMessage = item;
         }
@@ -131,5 +137,10 @@ public class EventHolder
         System.out.println(Thread.currentThread().getName() + " got " + item);
         notifyAll();
         return item;
+    }
+    //method for testing only
+    public Object[] getData() {
+    	Object[] result = {floorData, elevatorData, floorMessage, elevatorMessage, putData, putMessage};
+    	return result;
     }
 }
