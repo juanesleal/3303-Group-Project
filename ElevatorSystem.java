@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 /** ElevatorSystem.java
  *
@@ -19,7 +22,7 @@ public class ElevatorSystem
         // Create the Scheduler, Floor, and Elevator threads, passing each thread
         // a reference to the shared BoundedBuffer object.
         scheduler = new Thread(new Scheduler(eventHolder),"Scheduler");
-        floor = new Thread(new Floor(),"Floor");
+        floor = new Thread(new Floor(eventHolder),"Floor");
         elevator = new Thread(new Elevator(eventHolder), "Elevator");
         scheduler.start();
         floor.start();
@@ -39,7 +42,7 @@ class Scheduler implements Runnable
 
     public void run()
     {
-        for(int i = 0; i < 10; i++) {
+        while(true) {
             //we first need to get the Floordata
             Object event = eventHolder.getFloor();
             String msg;
@@ -59,11 +62,47 @@ class Scheduler implements Runnable
         }
     }
 }
-class Floor implements Runnable
-{
-    //your code here
-    public void run() {
 
+class Floor implements Runnable {
+
+    private EventHolder eventHolder; // eventHolder is used for us to send and retereive data and messages
+
+    /**
+     * Generates a new floor subsystem that communicates using the specified EventHolder
+     * @param eH, specifies the eventHolder for shared memory.
+     */
+    public Floor(EventHolder eH) {
+        this.eventHolder = eH;
+    }
+
+    public void run() {
+        try {
+            //    Read floor data values from file
+            BufferedReader br = new BufferedReader(new FileReader("FloorEventTest.txt"));
+            Event fd;
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                //    Read line and convert to floor data
+                fd = Event.parseString(line);
+
+                //    Send data to scheduler
+                System.out.println("== Floor Subsystem sending data << " + fd + " >> to schedular");
+                this.eventHolder.put(fd);
+
+                //    Sleep unessesary since get and put ait for data
+                Object receivedFd = this.eventHolder.getMsgF();
+                System.out.println("== Floor Subsystem receiving data << " + receivedFd + " >> from schedular");
+            }
+
+            this.eventHolder.put(null);
+
+            br.close();
+
+        }catch(IOException e) {
+            System.err.println(e.getMessage());
+        }
+        System.out.println("== Floor Subsystem finished");
     }
 }
 class Elevator implements Runnable
@@ -78,7 +117,7 @@ class Elevator implements Runnable
         while (true) {
             Object event = eventHolder.getMsgE();
             //we've received a message from Scheduler, now send something back, ill make it an event, but it doesn't need to be
-            eventHolder.put("Elevator sending data");
+            eventHolder.put("Elevator Data");
         }
     }
 }

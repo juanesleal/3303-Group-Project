@@ -73,7 +73,7 @@ public class EventHolder
             }
         }
         Object item = floorData;
-        floorData = 0;
+        floorData = null;
         empty = true;
         System.out.println(Thread.currentThread().getName() + " got " + item);
         notifyAll();
@@ -89,7 +89,7 @@ public class EventHolder
             }
         }
         Object item = elevatorData;
-        elevatorData = 0;
+        elevatorData = null;
         empty = true;
         System.out.println(Thread.currentThread().getName() + " got " + item);
         notifyAll();
