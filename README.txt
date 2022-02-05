@@ -22,4 +22,4 @@ Floor.java
 The Project also includes FloorEventTest.txt Which is the test calues for the classes.
 
 Set-Up and Running Instructions:
--To set up make sure that the files are all together in the same location open them in a java IDE and then run ElevatorSystm.java
+-To set up make sure that the files are all together in the same location open them in a java IDE and then run ElevatorSystem.java
