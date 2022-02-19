@@ -23,7 +23,7 @@ public class Scheduler implements Runnable
                 msg = "";
             }
             //now we send the event msg to Elevator
-            eventHolder.putMsg(msg, "Elevator");
+            eventHolder.putMsg(new Message(msg, 3), "Elevator");
             //wait for Elevator to send something back
             event = eventHolder.getElevator();
             //now we can send a msg to Floor
