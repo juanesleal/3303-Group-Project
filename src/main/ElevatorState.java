@@ -2,6 +2,7 @@ package main;
 
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * Calculations for floor timing...
@@ -92,6 +93,7 @@ abstract class ElevatorState {
     abstract void entry();
     abstract void timeFor(int floor);
     abstract void goTo(int floor);
+    abstract void arrive();
 }
 
 
@@ -108,6 +110,10 @@ class InitState extends ElevatorState {
     }
 
     void goTo(int floor) {
+
+    }
+
+    void arrive() {
 
     }
 }
@@ -130,11 +136,121 @@ class IdleState extends ElevatorState {
     }
 
     void goTo(int floor) {
-        ArrayList<Integer> addDest = new ArrayList<Integer>();
-        addDest.add(floor);
+        //don't actually move, just add things to queue, send messages...
+        LinkedList<Integer> addDest = new LinkedList<Integer>();
+        //need to add at front
+        addDest.addFirst(floor);
         super.elevatorRef.setQueue(addDest);
+        super.elevatorRef.setFloorOk(true);
         super.elevatorRef.send("OK");
+    }
+
+    void arrive() {
+
     }
 }
 
-    is target floor "on the way"
+class EmptyTState extends ElevatorState {
+    public EmptyTState(Elevator elev) {
+        super(elev);
+    }
+    public void entry() {
+
+    }
+
+    void timeFor(int floor) {
+        //we can't give an answer for that,
+        //we need to get the passenger destination first.
+    }
+
+    void goTo(int floor) {
+        //this should also never happen...
+    }
+
+    void arrive() {
+        //remove shit from queue
+        LinkedList<Integer> q = elevatorRef.getQueue();
+        //always arrive at the top of the q
+        q.removeFirst();
+        super.elevatorRef.setQueue(q);
+        super.elevatorRef.send("arrived");
+    }
+}
+
+class WaitPassEntryState extends ElevatorState {
+    public WaitPassEntryState(Elevator elev) {
+        super(elev);
+    }
+
+    public void entry() {
+        super.elevatorRef.acceptPass();
+    }
+
+    void timeFor(int floor) {
+
+    }
+
+    void goTo(int floor) {
+        //in this state, goTo is when the passenger sets a destination.
+        LinkedList<Integer> q = super.elevatorRef.getQueue();
+        //always add passengers destination to the bottom of the queue
+        q.addLast(floor);
+        super.elevatorRef.setQueue(q);
+    }
+
+    void arrive() {
+
+    }
+}
+
+class FullTState extends ElevatorState {
+    public FullTState(Elevator elev) {
+        super(elev);
+    }
+
+    public void entry() {
+
+    }
+
+    void timeFor(int floor) {
+        //check if floor is "on the way", if not, we can't give an accurate time.
+        double velocity = super.elevatorRef.getVelocity();
+        int destination = super.elevatorRef.getQueue().getFirst();
+        String msg = "";
+        if (velocity != 0) {
+            if (destination > floor && velocity > 0) {
+                //floor is on the way, we can now send a time
+                msg = ""  + arriveWhen(floor, velocity);
+            }else if (destination < floor && velocity < 0) {
+                //floor is on the way, we can now send a time
+                msg = ""  + arriveWhen(floor, velocity);
+            } else {
+                //floor isn't on the way, out time is fairly unknown, so we'll make that clear.
+                msg = "Inaccurate"  + (arriveWhen(destination, velocity) + 10.0);
+                super.elevatorRef.setFloorOk(false);
+            }
+        }else {
+            //hyper edge case
+            System.out.println("We should be moving... what's going on??");
+        }
+        if (msg.substring(0, 10) == "Inaccurate" || msg == "2000") {
+            //errorCode
+            super.elevatorRef.setFloorOk(false);
+        }else {
+            super.elevatorRef.setFloorOk(true);
+        }
+        super.elevatorRef.send(msg);
+    }
+this isn't working, this below isn't right at all----------------------------------------------------------------
+    void goTo(int floor) {
+        //in this state, goTo is when the passenger sets a destination.
+        LinkedList<Integer> q = elevatorRef.getQueue();
+        //always add passengers destination to the bottom of the queue
+        q.addLast(floor);
+        super.elevatorRef.setQueue(q);
+    }
+
+    void arrive() {
+
+    }
+}

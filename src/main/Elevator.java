@@ -1,6 +1,7 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Elevator implements Runnable
 {
@@ -8,7 +9,7 @@ public class Elevator implements Runnable
     private ElevatorState[] states = {new InitState(this), new IdleState(this), new EmptyTState(this), new WaitPassEntryState(this), new FullTState(this), new WaitPassExitState(this)};
     private int[][] transition = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 2, 5}, {5, 1, 4}};
     private int currentState = 0;
-    private ArrayList<Integer>  queue = new ArrayList<Integer>();
+    private LinkedList<Integer> queue = new LinkedList<Integer>();
     private boolean floorOk = false;
 
     private double floor = 1;
@@ -48,11 +49,11 @@ public class Elevator implements Runnable
         eventHolder.put(msg);
     }
 
-    public ArrayList<Integer> getQueue() {
+    public LinkedList<Integer> getQueue() {
         return queue;
     }
 
-    public void setQueue(ArrayList<Integer> q) {
+    public void setQueue(LinkedList<Integer> q) {
         queue = q;
     }
 
