@@ -1,19 +1,20 @@
 package main;
 
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class Elevator implements Runnable
 {
     private EventHolder eventHolder;
+    private ElevatorMovement eM = new ElevatorMovement();
     private ElevatorState[] states = {new InitState(this), new IdleState(this), new EmptyTState(this), new WaitPassEntryState(this), new FullTState(this), new WaitPassExitState(this)};
     private int[][] transition = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 2, 5}, {5, 1, 4}};
     private int currentState = 0;
     private LinkedList<Integer> queue = new LinkedList<Integer>();
     private boolean floorOk = false;
 
-    private double floor = 1;
-    private double velocity = 0;
+
 
     public Elevator(EventHolder eH) {
         eventHolder = eH;
@@ -32,6 +33,8 @@ public class Elevator implements Runnable
             }else if (event.getFunc() == "goTo") {
                 states[currentState].goTo(event.getFloor());
                 if (floorOk) {
+                    //move the elevator
+                    eM.move(event.getFloor());
                     next(1);
                 }else{
                     next(0);
@@ -66,10 +69,13 @@ public class Elevator implements Runnable
     }
 
     public double getFloor() {
-        return floor;
+        return eM.getFloor();
     }
 
     public double getVelocity() {
-        return velocity;
+        return eM.getFloor();
+    }
+    public ElevatorMovement geteM() {
+        return eM;
     }
 }
