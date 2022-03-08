@@ -8,7 +8,7 @@ public class EventHolder
     private Object floorData = null; // event from the floor
     private Object elevatorData = null; // data from the elevator
     private Object floorMessage = null; // message for the Floor
-    private Object elevatorMessage = null; //message for the Elevator
+    private Message elevatorMessage = null; //message for the Elevator
     //putData and putmsg used for testing put method
     private Object putData = null;
     private Object putMessage = null;
@@ -42,7 +42,7 @@ public class EventHolder
     /**
      * putMsg is specifically designed to send messages to floor and elevator, only implemented in the scheduler class
      */
-    public synchronized void putMsg(Object item, String to) {
+    public synchronized void putMsg(Message item, String to) {
         System.out.println(Thread.currentThread().getName() + " putting a message.");
         while (!empty) {
             try {
@@ -122,7 +122,7 @@ public class EventHolder
         notifyAll();
         return item;
     }
-    public synchronized Object getMsgE() {
+    public synchronized Message getMsgE() {
         System.out.println(Thread.currentThread().getName() + " getting a message.");
         while (empty || (elevatorMessage == null)) {
             try {
@@ -131,7 +131,7 @@ public class EventHolder
                 return null;
             }
         }
-        Object item = elevatorMessage;
+        Message item = elevatorMessage;
         elevatorMessage = null;
         empty = true;
         System.out.println(Thread.currentThread().getName() + " got " + item);
