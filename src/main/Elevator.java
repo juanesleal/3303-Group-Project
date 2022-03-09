@@ -4,6 +4,7 @@ package main;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.time.Clock;
 import java.util.LinkedList;
 
 //TODO apperently roughly half of the people will come in at the GROUND Floor
@@ -22,14 +23,14 @@ public class Elevator {
 
 
     public Elevator() {
-        communicator = new ElevatorCommunicator();
-        communicator.setElevator(this);
+        communicator = new ElevatorCommunicator(0, "Elevator1");
     }
 
     public static void main(String[] args) {
+        Clock time = Clock.systemDefaultZone();
         Elevator e = new Elevator();
         //testing
-        Message m = e.communicator.rpc_send(new Message(new String[] {"Availible"}, 10000, "Scheduler"));
+        Message m = e.communicator.rpc_send(new Message(new String[] {"Availible"}, time.millis(), "Scheduler"));
         System.out.println(m.getData()[0]);
 
 

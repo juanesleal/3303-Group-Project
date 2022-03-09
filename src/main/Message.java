@@ -6,12 +6,12 @@ public class Message {
 
     private String[] data;
     private long time;
-    private String to;
+    private String toFrom;
 
-    public Message(String[] msgData, long msgTime, String msgTo) {
+    public Message(String[] msgData, long msgTime, String msgToFrom) {
         data = msgData;
         time = msgTime;
-        to = msgTo;
+        toFrom = msgToFrom;
     }
     public String[] getData() {
         return data;
@@ -21,7 +21,7 @@ public class Message {
         return time;
     }
 
-    public String getTo() {
-        return to;
+    public String getToFrom() {
+        return toFrom;
     }
 }

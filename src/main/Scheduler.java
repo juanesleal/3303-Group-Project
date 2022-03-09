@@ -8,19 +8,26 @@ package main;
 // and make sure an elevator doesn't move until it gets a reply.
 // The elevator should just be designed to never move if the doors are open... why should the scheduler have to do this?
 
+import java.time.Clock;
+
 public class Scheduler {
     private SchedulerCommunicator schedulerCommunicator;
 
-    public Scheduler()
-    {
-        schedulerCommunicator = new SchedulerCommunicator(23);
-        schedulerCommunicator.setScheduler(this);
+    public Scheduler() {
+        //FIXME the port here needs to reference Communicator.SCHEDULER_EPORT or SCHEDULER.FPORT
+        schedulerCommunicator = new SchedulerCommunicator(23, "Scheduler");
     }
 
     public static void main(String[] args) {
+        Clock time = Clock.systemDefaultZone();
         Scheduler s = new Scheduler();
         while(true) {
-            s.schedulerCommunicator.receive_send();
+            Message m = s.schedulerCommunicator.receive();
+            System.out.println(m.getData()[0]);
+            if (m.getData()[0].equals("Availible")) {
+                //send OK back to wherever we got it
+                s.schedulerCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
+            }
             /*
             //we first need to get the Floordata
             Object event = eventHolder.getFloor();
