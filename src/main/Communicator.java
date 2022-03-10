@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public abstract class Communicator {
+public class Communicator {
     //definitions
 
     final int MAXELEVATORS = 9;
@@ -29,7 +29,9 @@ public abstract class Communicator {
     //this is how we can tell who we are...
     String me;
     Map<String, Integer> received;
-    Clock time = Clock.systemDefaultZone();
+
+    //default constructer, only for getting default values.
+    public Communicator() { }
 
     public Communicator(int port, String user) {
         if (port == 0) {
@@ -81,13 +83,15 @@ public abstract class Communicator {
             received.replace("Floor", receivePacket.getPort());
             s = "Floor";
         }else if (data[0] == ELEVATOR_BYTE) {
-            //this data is from the Floor
+            //this data is from the Elevator
             //update the port information.
             //note this assumes that the next BYTE is the elevatorid-------------------------------------------------------------------------------------------------
             received.replace(("Elevator" + data[1]), receivePacket.getPort());
             s = "Elevator" + data[1];
+        }else if (data[0] == SCHEDULER_BYTE[0] && data[1] == SCHEDULER_BYTE[1]){
+            //from the Scheduler, we don't have to save this port info
+            s = "Scheduler";
         }else {
-            //FIXME
             s = "ERROR";
         }
 
@@ -134,7 +138,6 @@ public abstract class Communicator {
         }else {
             // we are not sending to Scheduler, we may be an error, unless we are the Scheduler.
             if (me.equals("Scheduler")) {
-                //TODO add logic to make Scheduler send to a port from the received Map---------------------------------------------------------------------------------------------------------------------------------------------------
                 //who are we sending it to?
                 if (request[request.length - 1] == FLOOR_BYTE[1] && request[request.length - 2] == FLOOR_BYTE[0]) {
                     //sending to floor
@@ -177,9 +180,190 @@ public abstract class Communicator {
             System.exit(1);
         }
     }
-    abstract void parse(Object[] parseOne);
-}
+    public void parse(Object[] parseOne) {
+        byte[] msg = (byte[]) parseOne[0];
+        Message m = (Message) parseOne[1];
+        ByteBuffer bb = ByteBuffer.allocate(100);
+        if (msg == null && m != null) {
+            //this means that we need to parse the message into byte[]
+            //using byteBuffer since it's nice, recipient expects 100 bytes, lets use it.
+            //check if we are the Scheduler, the Floor or the Elevator
+            if (me.equals("Scheduler")) {
+                bb.put(SCHEDULER_BYTE);
+            }else if (me.equals("Floor")) {
+                bb.put(FLOOR_BYTE);
+            }else if (me.substring(0,me.length() - 1).equals("Elevator")) {
+                bb.put(ELEVATOR_BYTE);
+                bb.put((byte)Character.getNumericValue(me.charAt(me.length() - 1)));
+            }
+            bb.put((byte)0);
+            //add each string data member with a 1 following
+            String[] data = m.getData();
+            for (int i = 0; i < data.length; i++) {
+                bb.put(data[i].getBytes());
+                //follow each data member with a 1 so we can tell strings apart from the next data thing
+                //if this is the last string, no 1 follows
+                if (i != data.length - 1) {
+                    bb.put((byte)1);
+                }
+            }
+            bb.put((byte)0);
+            bb.putLong(m.getTime());
+            bb.put((byte)0);
+            //throw in netascii
+            bb.put("netascii".getBytes());
+            bb.put((byte)0);
+            //now we parse the String "to"
+            String s = m.getToFrom();
+            if (s.substring(0, s.length() - 1).equals("Elevator")) {
+                bb.put(ELEVATOR_BYTE);
+                //make damn sure we are putting the actual desired value...----------------------------------------------------------------------------------------------
+                char num = s.charAt(s.length() - 1);
+                bb.put((byte)Character.getNumericValue(num));
+            }else if (m.getToFrom().equals("Floor")){
+                bb.put(FLOOR_BYTE);
+            }else if (m.getToFrom().equals("Scheduler")){
+                bb.put(SCHEDULER_BYTE);
+            }
+            //write to length so it isn't 100 bytes long.
+            byte[] bytes = new byte[bb.position()];
+            for (int i = 0; i < bytes.length; i++) {
+                bytes[i] = bb.get(i);
+            }
+            parseOne[0] = bytes;
+            //now the output is written to the proper length
+        }else if (msg != null && m == null){
+            //convert msg to m
+            //Now we need to process the data.
+            //use bb since it's getters are nice.
+            bb.put(msg);
+            if (bb.get(0) == FLOOR_BYTE[0] && bb.get(1) == FLOOR_BYTE[1]) {
+                //from the Floor
+                //make a string array and a counter
+                String[] data = new String[MAXDATA];
+                int count = 0;
+                //basically loop from after the first three bytes till we hit the first 0 (which indicates we are done with data)
+                bb.get(); //this is a 0---------------------------------------------------------------------------------------------------
+                bb.get(); //this is a 2 or whatever bloorbytes are
+                bb.get(); //this should be a 0
+                while (bb.get() != 0) {
+                    if (bb.get() == 1) {
+                        //next String
+                        count++;
+                    }else {
+                        //put each char from the string into the string
+                        data[count] += bb.getChar();
+                    }
+                }
+                //bb should be at the long for time
+                parseOne[1] = new Message(data, bb.getLong(), "Floor");
+                //now check if the message is supposed to be To me:
+                bb.get(); //now it should be at the mode bytes;
+                while (bb.get() != 0) {
+                    //nothing, lol these should be netascii bytes
+                }
+                //finally, bb.position should be past the netascii bytes and at the To indecator bytes
+                if (bb.get(bb.position()) != SCHEDULER_BYTE[0] && me.equals("Scheduler")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Floor");
+                }
+                if (bb.get(bb.position() + 1) != SCHEDULER_BYTE[1] && me.equals("Scheduler")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Floor");
+                }
+                if (bb.get(bb.position()) != ELEVATOR_BYTE && me.substring(0,me.length()-1).equals("Elevator")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Floor");
+                }
 
+                //all set
+            }else if (bb.get(0) == ELEVATOR_BYTE){
+                bb.rewind();
+                //from the Elevator
+                //make a string array and a counter
+                String[] data = new String[MAXDATA];
+                data[0] = "";
+                int count = 0;
+                //basically loop from after the first three bytes till we hit the first 0 (which indicates we are done with data)
+                bb.get(); //this is a ELEVATORBYTE---------------------------------------------------------------------------------------------------
+                byte id = bb.get(); //this is a ELEVATORidBYTE
+                bb.get(); //this should be a 0
+                byte character = bb.get();
+                while (character != 0) {
+                    if (character == 1) {
+                        //next String
+                        count++;
+                    }else {
+                        //put each char from the string into the string
+                        data[count] += (char)character;
+                    }
+                    character = bb.get();
+                }
+
+                //bb should be at the long for time
+                parseOne[1] = new Message(data, bb.getLong(), "Elevator" + id);
+                //now check if the message is supposed to be To me:
+                bb.get(); //now it should be at the mode bytes;
+                while (bb.get() != 0) {
+                    //nothing, lol these should be netascii bytes
+                }
+
+                //finally, bb.position should be past the netascii bytes and at the To indecator bytes
+                if (bb.get(bb.position()) != SCHEDULER_BYTE[0] && me.equals("Scheduler")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Elevator" + id);
+                }
+                if (bb.get(bb.position() + 1) != SCHEDULER_BYTE[1] && me.equals("Scheduler")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Elevator" + id);
+                }
+                if (bb.get(bb.position()) != FLOOR_BYTE[0] && me.equals("Floor")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Elevator" + id);
+                }
+                if (bb.get(bb.position() + 1) != FLOOR_BYTE[1] && me.equals("Floor")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Elevator" + id);
+                }
+            }else if (bb.get(0) == SCHEDULER_BYTE[0] && bb.get(1) == SCHEDULER_BYTE[1]){
+                bb.rewind();
+                //from the Scheduler
+                //make a string array and a counter
+                String[] data = new String[MAXDATA];
+                data[0] = "";
+                int count = 0;
+                //basically loop from after the first three bytes till we hit the first 0 (which indicates we are done with data)
+                bb.get(); //this is a SCHEDULERBYTE---------------------------------------------------------------------------------------------------
+                bb.get(); //this is a SCHEDULERBYTE
+                bb.get(); //this should be a 0
+                byte character = bb.get();
+                while (character != 0) {
+                    if (character == 1) {
+                        //next String
+                        count++;
+                    }else {
+                        //put each char from the string into the string
+                        data[count] += (char)character;
+                    }
+                    character = bb.get();
+                }
+
+                //bb should be at the long for time
+                parseOne[1] = new Message(data, bb.getLong(), "Scheduler");
+                //now check if the message is supposed to be To me:
+                bb.get(); //now it should be at the mode bytes;
+                while (bb.get() != 0) {
+                    //nothing, lol these should be netascii bytes
+                }
+
+                //finally, bb.position should be past the netascii bytes and at the To indecator bytes
+                if (bb.get(bb.position()) != FLOOR_BYTE[0] && me.equals("Floor")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Scheduler");
+                }
+                if (bb.get(bb.position() + 1) != FLOOR_BYTE[1] && me.equals("Floor")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Scheduler");
+                }
+                if (bb.get(bb.position()) != ELEVATOR_BYTE && me.substring(0,me.length()-1).equals("Elevator")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Scheduler");
+                }
+            }
+        }
+    }
+}
+/*
 class ElevatorCommunicator extends Communicator {
     int id;
 
@@ -189,64 +373,7 @@ class ElevatorCommunicator extends Communicator {
         id = Character.getNumericValue(me.charAt(me.length() - 1));
     }
 
-    /*
-    public Message rpc_send(Message m) {
-        //note since we are the Scheduler we only send requests
 
-
-        Object[] args = {null, m};
-        parse(args);
-        byte[] request = (byte[]) args[0];
-        //TODO send it
-        // add logic to determine where it should go, specifying port number
-
-        // Construct a datagram packet that is to be sent to a specified port
-        // on a specified host (in this case we know to send to port 23)
-        try {
-            sendPacket = new DatagramPacket(request, request.length,
-                    InetAddress.getLocalHost(), 23);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        System.out.println("Elevator: Sending packet:");
-        System.out.println("To host: " + sendPacket.getAddress());
-        System.out.println("Destination host port: " + sendPacket.getPort());
-        int len = sendPacket.getLength();
-        System.out.println("Length: " + len);
-        System.out.print("Containing: ");
-        System.out.println("String: " + new String(sendPacket.getData(),0,len));
-        System.out.print("Bytes: ");
-        for (int i = 0; i < request.length; i++) {
-            System.out.print(request[i]);
-            System.out.print(",");
-        }
-        System.out.println("\n");
-        // Send the datagram packet to the server via the send/receive socket.
-
-        try {
-            sendReceiveSocket.send(sendPacket);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        //now receive
-        byte data[] = new byte[100];
-        receivePacket = new DatagramPacket(data, data.length);
-        try {
-            System.out.println("Elevator waiting...");
-            sendReceiveSocket.receive(receivePacket);
-        } catch (IOException e) {
-            System.out.println("Receive timed out\n" + e);
-            e.printStackTrace();
-        }
-        System.out.println("Elevator received");
-        args = new Object[]{data, null};
-        parse(args);
-        return (Message) args[1];
-    }
-    */
     //TODO stop using parse seperately, we probably don't even need seperate classes...------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void parse(Object[] parseOne) {
         System.out.println("Elevator Parsing...");
@@ -514,3 +641,4 @@ class SchedulerCommunicator extends Communicator {
         }
     }
 }
+*/

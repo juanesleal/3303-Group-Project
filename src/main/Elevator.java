@@ -7,12 +7,11 @@ import java.net.SocketException;
 import java.time.Clock;
 import java.util.LinkedList;
 
-//TODO apperently roughly half of the people will come in at the GROUND Floor
 // need to add lamps, arrival sensors, and other things...???
 
 
 public class Elevator {
-    private ElevatorCommunicator communicator;
+    private Communicator communicator;
     private ElevatorMovement eM = new ElevatorMovement();
     private ElevatorState[] states = {new InitState(this), new IdleState(this), new EmptyTState(this), new WaitPassEntryState(this), new FullTState(this), new WaitPassExitState(this)};
     private int[][] transition = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 2, 5}, {5, 1, 4}};
@@ -23,7 +22,7 @@ public class Elevator {
 
 
     public Elevator() {
-        communicator = new ElevatorCommunicator(0, "Elevator1");
+        communicator = new Communicator(0, "Elevator1");
     }
 
     public static void main(String[] args) {

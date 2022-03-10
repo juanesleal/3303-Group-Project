@@ -7,15 +7,16 @@ package main;
 // I'm not sure how you would solve these issues without just designing them out ie: get reply messages for everything,
 // and make sure an elevator doesn't move until it gets a reply.
 // The elevator should just be designed to never move if the doors are open... why should the scheduler have to do this?
+//TODO apperently roughly half of the people will come in at the GROUND Floor
 
 import java.time.Clock;
 
 public class Scheduler {
-    private SchedulerCommunicator schedulerCommunicator;
+    private Communicator schedulerCommunicator;
 
     public Scheduler() {
-        //FIXME the port here needs to reference Communicator.SCHEDULER_EPORT or SCHEDULER.FPORT
-        schedulerCommunicator = new SchedulerCommunicator(23, "Scheduler");
+        Communicator com = new Communicator();
+        schedulerCommunicator = new Communicator(com.SCHEDULER_EPORT, "Scheduler");
     }
 
     public static void main(String[] args) {
