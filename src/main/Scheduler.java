@@ -29,6 +29,57 @@ public class Scheduler {
                 //send OK back to wherever we got it
                 s.schedulerCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
             }
+            
+            public void addJob(Request request) {
+        		if (currentState == State.IDLE) {
+        			currentState = State.MOVING;
+        			currentDirection = request.getExternalRequest().getDirectionToGo();
+        			currentJobs.add(request);
+        		} else if (currentState == State.MOVING) {
+
+        			if (request.getExternalRequest().getDirectionToGo() != currentDirection) {
+        				addtoPendingJobs(request);
+        			} else if (request.getExternalRequest().getDirectionToGo() == currentDirection) {
+        				if (currentDirection == Direction.UP
+        						&& request.getInternalRequest().getDestinationFloor() < currentFloor) {
+        					addtoPendingJobs(request);
+        				} else if (currentDirection == Direction.DOWN
+        						&& request.getInternalRequest().getDestinationFloor() > currentFloor) {
+        					addtoPendingJobs(request);
+        				} else {
+        					currentJobs.add(request);
+        				}
+
+        			}
+
+        		}
+
+        	}
+
+        	public void addtoPendingJobs(Request request) {
+        		if (request.getExternalRequest().getDirectionToGo() == Direction.UP) {
+        			System.out.println("Add to pending up jobs");
+        			upPendingJobs.add(request);
+        		} else {
+        			System.out.println("Add to pending down jobs");
+        			downPendingJobs.add(request);
+        		}
+        	}
+
+        }
+        
+        
+        enum State {
+
+        	MOVING, STOPPED, IDLE
+
+        }
+
+        enum Direction {
+
+        	UP, DOWN
+
+        }
             /*
             //we first need to get the Floordata
             Object event = eventHolder.getFloor();
