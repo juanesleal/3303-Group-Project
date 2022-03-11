@@ -1,24 +1,25 @@
-
-// im here
 package main;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.Clock;
 
-public class Floor implements Runnable {
+public class Floor {
 
-    private EventHolder eventHolder; // eventHolder is used for us to send and retereive data and messages
+    private Communicator floorCommunicator;
 
     /**
      * Generates a new floor subsystem that communicates using the specified EventHolder
-     * @param eH, specifies the eventHolder for shared memory.
+     *  specifies the eventHolder for shared memory.
      */
-    public Floor(EventHolder eH) {
-        this.eventHolder = eH;
+    public Floor() {
+        floorCommunicator = new Communicator(0, "Floor");
     }
 
-    public void run() {
+    public static void main(String[] args) {
+        Clock time = Clock.systemDefaultZone();
+        Floor f = new Floor();
         try {
             //    Read floor data values from file
             BufferedReader br = new BufferedReader(new FileReader("FloorEventTest.txt"));
@@ -27,18 +28,28 @@ public class Floor implements Runnable {
             String line;
             while ((line = br.readLine()) != null) {
                 //    Read line and convert to floor data
-                fd = Event.parseString(line);
+                //fd = Event.parseString(line);
 
                 //    Send data to scheduler
-                System.out.println("== Floor Subsystem sending data << " + fd + " >> to schedular");
-                this.eventHolder.put(fd);
+                System.out.println("== Floor Subsystem sending data << " + line + " >> to schedular");
+                //FIXME
+                String[] data = line.split(" ", 3);
+                System.out.println(data[0]);
+                for (int i = 0; i<4; i++) {
+                    data[i] = data[i].trim();
+                }
+
+                Message m = f.floorCommunicator.rpc_send(new Message(data, time.millis(), "Scheduler"));
+                while (!(m.getData()[0].equals("OK"))) {
+                    m = f.floorCommunicator.rpc_send(new Message(data, time.millis(), "Scheduler"));
+                }
 
                 //    Sleep unessesary since get and put wait for data
-                Object receivedFd = this.eventHolder.getMsgF();
-                System.out.println("== Floor Subsystem receiving data << " + receivedFd + " >> from schedular");
+                //Object receivedFd = this.eventHolder.getMsgF();
+               // System.out.println("== Floor Subsystem receiving data << " + receivedFd + " >> from schedular");
             }
 
-            this.eventHolder.put(null);
+            //this.eventHolder.put(null);
 
             br.close();
 

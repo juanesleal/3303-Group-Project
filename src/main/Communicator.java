@@ -56,6 +56,7 @@ public class Communicator {
         }
     }
     public Message rpc_send(Message m) {
+        //TODO timeout
         send(m);
         //successfully sent.
         return receive();
