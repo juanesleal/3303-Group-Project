@@ -9,6 +9,7 @@ package main;
 // The elevator should just be designed to never move if the doors are open... why should the scheduler have to do this?
 //TODO apperently roughly half of the people will come in at the GROUND Floor
 
+
 /**
  * receive from elevator (look for "Availible")
  *          check if valid, send response
@@ -26,35 +27,76 @@ package main;
  */
 
 import java.time.Clock;
-import java.util.ArrayDeque;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public class Scheduler {
-    private Communicator eCommunicator;
-    private Communicator fCommunicator;
-    private LinkedList<Message> queue =  new LinkedList<>();
-    //todo maybe have this sorted, if it is sorted, then it needs to be a list or smth
-    //time TillRequest[0] is the floor for which the times are relevant
-    private int[] timeTillRequest;
+    private Communicator schedulerCommunicator;
 
     public Scheduler() {
         Communicator com = new Communicator();
-        eCommunicator = new Communicator(com.SCHEDULER_EPORT, "Scheduler");
-        fCommunicator = new Communicator(com.SCHEDULER_FPORT, "Scheduler");
-        timeTillRequest = new int[com.MAXELEVATORS + 1];
+        schedulerCommunicator = new Communicator(com.SCHEDULER_EPORT, "Scheduler");
     }
 
     public static void main(String[] args) {
         Clock time = Clock.systemDefaultZone();
         Scheduler s = new Scheduler();
         while(true) {
-            Message m = s.eCommunicator.receive();
+            Message m = s.schedulerCommunicator.receive();
             System.out.println(m.getData()[0]);
             if (m.getData()[0].equals("Availible")) {
                 //send OK back to wherever we got it
-                s.eCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
+                s.schedulerCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
             }
+            
+            public void addJob(Request request) {
+        		if (currentState == State.IDLE) {
+        			currentState = State.MOVING;
+        			currentDirection = request.getExternalRequest().getDirectionToGo();
+        			currentJobs.add(request);
+        		} else if (currentState == State.MOVING) {
+
+        			if (request.getExternalRequest().getDirectionToGo() != currentDirection) {
+        				addtoPendingJobs(request);
+        			} else if (request.getExternalRequest().getDirectionToGo() == currentDirection) {
+        				if (currentDirection == Direction.UP
+        						&& request.getInternalRequest().getDestinationFloor() < currentFloor) {
+        					addtoPendingJobs(request);
+        				} else if (currentDirection == Direction.DOWN
+        						&& request.getInternalRequest().getDestinationFloor() > currentFloor) {
+        					addtoPendingJobs(request);
+        				} else {
+        					currentJobs.add(request);
+        				}
+
+        			}
+
+        		}
+
+        	}
+
+        	public void addtoPendingJobs(Request request) {
+        		if (request.getExternalRequest().getDirectionToGo() == Direction.UP) {
+        			System.out.println("Add to pending up jobs");
+        			upPendingJobs.add(request);
+        		} else {
+        			System.out.println("Add to pending down jobs");
+        			downPendingJobs.add(request);
+        		}
+        	}
+
+        }
+        
+        
+        enum State {
+            //EWAIT, FWAIT, REQUESTTIME, SCHEDULE ELEVATOR, REQUESTELEVATOR, FWAIT
+        	MOVING, STOPPED, IDLE
+
+        }
+
+        enum Direction {
+
+        	UP, DOWN
+
+        }
             /*
             //we first need to get the Floordata
             Object event = eventHolder.getFloor();
