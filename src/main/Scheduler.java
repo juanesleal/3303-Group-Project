@@ -9,23 +9,6 @@ package main;
 // The elevator should just be designed to never move if the doors are open... why should the scheduler have to do this?
 //TODO apperently roughly half of the people will come in at the GROUND Floor
 
-
-/**
- * receive from elevator (look for "Availible")
- *          check if valid, send response
- * receive from Floor (add data to queue (chronologically, according to the time in the data.))
- *          check if valid, send response
- * loop(while queue has something)
- *      handle event
- *          ask elevators how long till they get to the floor (if no reply, all elevators are busy)
- *              wait for reply, store in timeTillRequest[1] = time for elevator 1, [2] is for elevator 2...
- *              NOTE might be worthwhile to store a minimum possible time for an elevator to get to a floor. (Elevator responds to time request with a flag for minimum possible time.)
- *          process that
- *          ask 1 elevator to go to the floor (set a timer for the amount that they said it would take them to get there)
- *              wait for reply (if they say NO, we need to ask the next best Elevator)
- *      loop
- */
-
 import java.time.Clock;
 
 public class Scheduler {
@@ -47,24 +30,31 @@ public class Scheduler {
                 s.schedulerCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
             }
             
-            public void addJob(Request request) {
-        		if (currentState == State.IDLE) {
-        			currentState = State.MOVING;
-        			currentDirection = request.getExternalRequest().getDirectionToGo();
-        			currentJobs.add(request);
-        		} else if (currentState == State.MOVING) {
+            public void StateMachine(Message m) {
+        		State currentState;
+				Object currentDirection;
+				int currentFloor;
+				Event event;
+				
+				if (currentState == State.IDLE) {
+					currentState = State.AVAILABLE;
+        			currentDirection = Elevator.getDirection();
+        			
+        		} else if (currentState == State.UNAVAILABLE) {
 
-        			if (request.getExternalRequest().getDirectionToGo() != currentDirection) {
-        				addtoPendingJobs(request);
-        			} else if (request.getExternalRequest().getDirectionToGo() == currentDirection) {
-        				if (currentDirection == Direction.UP
-        						&& request.getInternalRequest().getDestinationFloor() < currentFloor) {
-        					addtoPendingJobs(request);
-        				} else if (currentDirection == Direction.DOWN
-        						&& request.getInternalRequest().getDestinationFloor() > currentFloor) {
-        					addtoPendingJobs(request);
+        			if (Event.getButtonEvent().getDirectionToGo() != currentDirection) {
+        				
+        				addtoPendingJobs(event);
+        				
+        			} else if (event.getButtonevent().getDirectionToGo() == currentDirection) {
+
+						if (currentDirection == Direction.UP && event.getInternalevent().getDestinationFloor() < currentFloor) {
+        					addtoPendingJobs(event);
+        				} else if (currentDirection == Direction.DOWN && event.getInternalevent().getDestinationFloor() > currentFloor) {
+        					addtoPendingJobs(event);
         				} else {
-        					currentJobs.add(request);
+        					//CurrentJobs is just a placeholder might just change it to a list or something that holds the list of current jobs for up and down
+							currentJobs.add(event);
         				}
 
         			}
@@ -72,23 +62,36 @@ public class Scheduler {
         		}
 
         	}
-
-        	public void addtoPendingJobs(Request request) {
-        		if (request.getExternalRequest().getDirectionToGo() == Direction.UP) {
+            
+            //will change this to get all the events and store them according to a message so they can be sent as soon as the scheduler is free
+        	public void addtoPendingJobs(Event event) {
+        		if (event.getEvent().getDirectionToGo() == Direction.UP) {
         			System.out.println("Add to pending up jobs");
-        			upPendingJobs.add(request);
+        			upPendingJobs.add(event);
         		} else {
         			System.out.println("Add to pending down jobs");
-        			downPendingJobs.add(request);
+        			downPendingJobs.add(event);
         		}
         	}
-
+        	//Selects the best elevator depending on the floor where the request was made
+        	public void selectElevator(Elevator elevator1, Elevator elevator2) {
+        		Elevator selectedElevator;
+        		if (currentFloor - elevator2.getFloor() < currentFloor - elevator1.getFloor()) {
+        		selectedElevator = elevator2;
+        		
+        		
+        		}
+        		
+        	}
+        	
+        	
+        	
         }
         
         
         enum State {
-            //EWAIT, FWAIT, REQUESTTIME, SCHEDULE ELEVATOR, REQUESTELEVATOR, FWAIT
-        	MOVING, STOPPED, IDLE
+
+        	UNAVAILABLE, AVAILABLE, IDLE
 
         }
 
