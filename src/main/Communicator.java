@@ -55,6 +55,9 @@ public class Communicator {
             received.put(("Elevator" + i), 0);
         }
     }
+    public int getFloorPort() {
+        return received.get("Floor");
+    }
     public Message rpc_send(Message m) {
         //TODO timeout
         send(m);
@@ -80,8 +83,6 @@ public class Communicator {
         //now we find out who it's from
         if (data[0] == FLOOR_BYTE[0] && data[1] == FLOOR_BYTE[1]) {
             //this data is from the Floor
-            //update the port information.
-            received.replace("Floor", receivePacket.getPort());
             s = "Floor";
         }else if (data[0] == ELEVATOR_BYTE) {
             //this data is from the Elevator
@@ -136,17 +137,15 @@ public class Communicator {
             }else if (me.substring(0, (me.length() - 1)).equals("Elevator")) {
                 sendPort = SCHEDULER_EPORT;
             }
-        }else {
+        }else if (request[request.length - 1] == FLOOR_BYTE[1] && request[request.length - 2] == FLOOR_BYTE[0]) {
             // we are not sending to Scheduler, we may be an error, unless we are the Scheduler.
-            if (me.equals("Scheduler")) {
-                //who are we sending it to?
-                if (request[request.length - 1] == FLOOR_BYTE[1] && request[request.length - 2] == FLOOR_BYTE[0]) {
-                    //sending to floor
-                    sendPort = received.get("Floor");
-                }else if (request[request.length - 2] == ELEVATOR_BYTE) {
-                    sendPort = received.get("Elevator" + request[request.length - 1]);
-                }
+            if (me.equals("Scheduler") || me.substring(0, (me.length() - 1)).equals("Elevator")) {
+                //who are we sending it to
+                //sending to floor
+                sendPort = FLOOR_PORT;
             }
+        } else if (request[request.length - 2] == ELEVATOR_BYTE && !(me.substring(0, (me.length() - 1)).equals("Elevator"))) {
+            sendPort = received.get("Elevator" + request[request.length - 1]);
         }
 
         System.out.println(request[request.length - 2]);
@@ -239,23 +238,28 @@ public class Communicator {
             //use bb since it's getters are nice.
             bb.put(msg);
             if (bb.get(0) == FLOOR_BYTE[0] && bb.get(1) == FLOOR_BYTE[1]) {
+                bb.rewind();
                 //from the Floor
                 //make a string array and a counter
                 String[] data = new String[MAXDATA];
+                data[0] = "";
                 int count = 0;
                 //basically loop from after the first three bytes till we hit the first 0 (which indicates we are done with data)
-                bb.get(); //this is a 0---------------------------------------------------------------------------------------------------
-                bb.get(); //this is a 2 or whatever bloorbytes are
+                bb.get(); //this is a FloorBYTE---------------------------------------------------------------------------------------------------
+                bb.get(); //this is a Floorbyte
                 bb.get(); //this should be a 0
-                while (bb.get() != 0) {
-                    if (bb.get() == 1) {
+                byte character = bb.get();
+                while (character != 0) {
+                    if (character == 1) {
                         //next String
                         count++;
                     }else {
                         //put each char from the string into the string
-                        data[count] += bb.getChar();
+                        data[count] += (char)character;
                     }
+                    character = bb.get();
                 }
+
                 //bb should be at the long for time
                 parseOne[1] = new Message(data, bb.getLong(), "Floor");
                 //now check if the message is supposed to be To me:
@@ -263,6 +267,7 @@ public class Communicator {
                 while (bb.get() != 0) {
                     //nothing, lol these should be netascii bytes
                 }
+
                 //finally, bb.position should be past the netascii bytes and at the To indecator bytes
                 if (bb.get(bb.position()) != SCHEDULER_BYTE[0] && me.equals("Scheduler")) {
                     parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Floor");
@@ -270,7 +275,10 @@ public class Communicator {
                 if (bb.get(bb.position() + 1) != SCHEDULER_BYTE[1] && me.equals("Scheduler")) {
                     parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Floor");
                 }
-                if (bb.get(bb.position()) != ELEVATOR_BYTE && me.substring(0,me.length()-1).equals("Elevator")) {
+                if (bb.get(bb.position()) != FLOOR_BYTE[0] && me.equals("Floor")) {
+                    parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Floor");
+                }
+                if (bb.get(bb.position() + 1) != FLOOR_BYTE[1] && me.equals("Floor")) {
                     parseOne[1] = new Message(new String[]{"PacketNotForMe"}, 0, "Floor");
                 }
 
@@ -335,6 +343,7 @@ public class Communicator {
                     if (character == 1) {
                         //next String
                         count++;
+                        data[count] = "";
                     }else {
                         //put each char from the string into the string
                         data[count] += (char)character;

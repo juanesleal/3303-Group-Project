@@ -14,18 +14,29 @@ public class Floor {
      *  specifies the eventHolder for shared memory.
      */
     public Floor() {
-        floorCommunicator = new Communicator(0, "Floor");
+        Communicator com = new Communicator();
+        floorCommunicator = new Communicator(com.FLOOR_PORT, "Floor");
     }
 
     public static void main(String[] args) {
         Clock time = Clock.systemDefaultZone();
         Floor f = new Floor();
         try {
+            //testing
+            Message m = f.floorCommunicator.receive();
+            if (m.getData()[0].equals("ButtonReq")) {
+                //send a default value:
+                double rand = Math.random();
+
+                f.floorCommunicator.send(new Message(new String[] {"OK","" + (((int)rand * 8) + 1)}, time.millis(), m.getToFrom()));
+            }
+
             //    Read floor data values from file
             BufferedReader br = new BufferedReader(new FileReader("FloorEventTest.txt"));
             Event fd;
 
             String line;
+            /*
             while ((line = br.readLine()) != null) {
                 //    Read line and convert to floor data
                 //fd = Event.parseString(line);
@@ -39,7 +50,7 @@ public class Floor {
                     data[i] = data[i].trim();
                 }
 
-                Message m = f.floorCommunicator.rpc_send(new Message(data, time.millis(), "Scheduler"));
+                m = f.floorCommunicator.rpc_send(new Message(data, time.millis(), "Scheduler"));
                 while (!(m.getData()[0].equals("OK"))) {
                     m = f.floorCommunicator.rpc_send(new Message(data, time.millis(), "Scheduler"));
                 }
@@ -53,9 +64,13 @@ public class Floor {
 
             br.close();
 
+             */
+
         }catch(IOException e) {
             System.err.println(e.getMessage());
         }
         System.out.println("== Floor Subsystem finished");
+
+
     }
 }

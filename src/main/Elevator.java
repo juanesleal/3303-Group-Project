@@ -6,32 +6,60 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.time.Clock;
 import java.util.LinkedList;
-
-// need to add lamps, arrival sensors, and other things...???
-
+/*
+public class ElevatorInit {
+    //Initialize Elevators
+    public static void main(String[] args) {
+        Elevator e1 = new Elevator(1);
+        Elevator e2 = new Elevator(2);
+        e1.main(new String[]{});
+        e2.main();
+    }
+}
+*/
 
 public class Elevator {
     private Communicator communicator;
-    private ElevatorMovement eM = new ElevatorMovement();
+    private ElevatorMovement eM = new ElevatorMovement(this);
     private ElevatorState[] states = {new InitState(this), new IdleState(this), new EmptyTState(this), new WaitPassEntryState(this), new FullTState(this), new WaitPassExitState(this)};
     private int[][] transition = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 2, 5}, {5, 1, 4}};
     private int currentState = 0;
     private LinkedList<Integer> queue = new LinkedList<Integer>();
     private boolean floorOk = false;
+    private boolean doorsOpen = false;
+    Clock time = Clock.systemDefaultZone();
 
 
 
-    public Elevator() {
-        communicator = new Communicator(0, "Elevator1");
+    public Elevator(int i) {
+        communicator = new Communicator(0, "Elevator" + i);
     }
 
-    public static void main(String[] args) {
-        Clock time = Clock.systemDefaultZone();
-        Elevator e = new Elevator();
-        //testing
-        Message m = e.communicator.rpc_send(new Message(new String[] {"Availible"}, time.millis(), "Scheduler"));
-        System.out.println(m.getData()[0]);
 
+    public static void main(String[] args) {
+        System.out.println(args[0]);
+        Elevator e = new Elevator(Integer.parseInt(args[0]));
+        if (Integer.parseInt(args[0]) == 2) {
+            //start on 2nd floor
+            e.eM.prevFloor++;
+        }
+        //testing
+
+        while (true) {
+            //TODO check if arrived
+
+            e.entry();
+            //receive a message
+            Message m = e.communicator.receive();
+            System.out.println("state: "+ e.currentState);
+            System.out.println(m.getData()[0]);
+            if (m.getData()[0].equals("timeFor")) {
+                e.timeFor(Integer.parseInt(m.getData()[1]));
+            }else if (m.getData()[0].equals("goTo")) {
+                e.goTo(Integer.parseInt(m.getData()[1]));
+            }
+            System.out.println("state: "+ e.currentState);
+        }
 
         //TODO do some states... idk
         /*
@@ -60,12 +88,56 @@ public class Elevator {
         }
         */
     }
-    private void next(int state) {
-        currentState = transition[currentState][state];
+
+    public void next(String n) {
+
+        switch(n) {
+            case "Init":
+                currentState = 0;
+                break;
+            case "Idle":
+                currentState = 1;
+                break;
+            case "Empty":
+                currentState = 2;
+                break;
+            case "WaitEntry":
+                currentState = 3;
+                break;
+            case "Full":
+                currentState = 4;
+                break;
+            case "WaitExit":
+                currentState = 5;
+        }
+        System.out.println("next: " + n + "  " + currentState);
     }
 
-    public void send(String msg) {
-        //TODO fixme
+    public String[] send(String[] msg, String to) {
+        Message m = communicator.rpc_send(new Message(msg, time.millis(), to));
+        return m.getData();
+    }
+
+    public void reply(String[] msg, String to) {
+        //we are replying, so we don't need an rpc_send
+        communicator.send(new Message(msg, time.millis(), to));
+    }
+
+    public void entry() {
+        states[currentState].entry();
+    }
+
+    public void timeFor(int floor) {
+        states[currentState].timeFor(floor);
+    }
+
+    public void goTo(int floor) {
+
+        states[currentState].goTo(floor);
+    }
+
+    public void arrive() {
+        states[currentState].arrive();
     }
 
     public LinkedList<Integer> getQueue() {
@@ -78,6 +150,10 @@ public class Elevator {
 
     public void setFloorOk(boolean floorOk) {
         this.floorOk = floorOk;
+    }
+
+    public void setDoorsOpen(boolean doorsOpen) {
+        this.doorsOpen = doorsOpen;
     }
 
     public boolean isFloorOk() {
