@@ -10,10 +10,19 @@ package main;
 //TODO apperently roughly half of the people will come in at the GROUND Floor
 
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Scheduler {
     private Communicator schedulerCommunicator;
-
+	int currentFloor;
+	State currentState;
+	Object currentDirection;
+	Event event;
+    List<Event> currentJobs = new ArrayList<Event>();   
+    List<Event> upPendingJobs = new ArrayList<Event>();   
+    List<Event> downPendingJobs = new ArrayList<Event>();   
+	
     public Scheduler() {
         Communicator com = new Communicator();
         schedulerCommunicator = new Communicator(com.SCHEDULER_EPORT, "Scheduler");
@@ -29,29 +38,40 @@ public class Scheduler {
                 //send OK back to wherever we got it
                 s.schedulerCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
             }
-            
+        
+            //this should be looping I am not sure if that is what the while loop is for or not but if it isnt then i will place it in its own loop
             public void StateMachine(Message m) {
-        		State currentState;
-				Object currentDirection;
-				int currentFloor;
-				Event event;
-				
-				if (currentState == State.IDLE) {
-					currentState = State.AVAILABLE;
-        			currentDirection = Elevator.getDirection();
-        			
-        		} else if (currentState == State.UNAVAILABLE) {
 
-        			if (Event.getButtonEvent().getDirectionToGo() != currentDirection) {
+				if (currentState == State.IDLE && m.getData()[0].equals("Availible")) {
+					currentState = State.AVAILABLE;
+					
+        		} else if (currentState == State.UNAVAILABLE && m.getData()[0].equals("Availible")) {
+        			//gets the direction of the chosen elevator depending on the button input then decides which way it will go
+        			
+					Elevator givenElevator = selectElevator(elevator1,elevator2);
+					currentDirection= givenElevator.getDirection();
+					
+        			if (Event.getButtonEvent().getDirection() != currentDirection) {
         				
         				addtoPendingJobs(event);
         				
-        			} else if (event.getButtonevent().getDirectionToGo() == currentDirection) {
+        			} else if (event.getButtonevent().getDirection() == currentDirection) {
 
-						if (currentDirection == Direction.UP && event.getInternalevent().getDestinationFloor() < currentFloor) {
+						if (currentDirection == Direction.UP && givenElevator.getDestinationFloor() < currentFloor) {
+        					//should be code here to send a message to the elevator to move just wasnt sure how to implement it
+							
+							s.schedulerCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
+							addtoPendingJobs(event);
+							
+							
+        				} else if (currentDirection == Direction.DOWN && givenElevator.getDestinationFloor() > currentFloor) {
+        					//should be code here to send a message to the elevator to move just wasnt sure how to implement it
+        					
+        					
         					addtoPendingJobs(event);
-        				} else if (currentDirection == Direction.DOWN && event.getInternalevent().getDestinationFloor() > currentFloor) {
-        					addtoPendingJobs(event);
+        					
+        					
+        					
         				} else {
         					//CurrentJobs is just a placeholder might just change it to a list or something that holds the list of current jobs for up and down
 							currentJobs.add(event);
@@ -60,28 +80,46 @@ public class Scheduler {
         			}
 
         		}
+        		else if(currentState == State.UNAVAILABLE && m.getData()[0].equals("Unavailible")) {
+        			//wait for message to be sent then set State to available
+        			currentState = State.AVAILABLE;
+        			
+        			
+        		}
 
         	}
+        }
             
-            //will change this to get all the events and store them according to a message so they can be sent as soon as the scheduler is free
+            //Stores the tasks at hand if elevators or scheduler are busy
         	public void addtoPendingJobs(Event event) {
+        		
         		if (event.getEvent().getDirectionToGo() == Direction.UP) {
         			System.out.println("Add to pending up jobs");
         			upPendingJobs.add(event);
-        		} else {
+        		} 
+        		
+        		else {
         			System.out.println("Add to pending down jobs");
-        			downPendingJobs.add(event);
+
+					downPendingJobs.add(event);
         		}
         	}
+        	
+        	
         	//Selects the best elevator depending on the floor where the request was made
-        	public void selectElevator(Elevator elevator1, Elevator elevator2) {
+        	public Elevator selectElevator(Elevator elevator1, Elevator elevator2) {
         		Elevator selectedElevator;
         		if (currentFloor - elevator2.getFloor() < currentFloor - elevator1.getFloor()) {
         		selectedElevator = elevator2;
         		
         		
         		}
+        		else if (currentFloor - elevator1.getFloor() < currentFloor - elevator2.getFloor()) {
+        		selectedElevator = elevator1;
         		
+        		
+        		}
+        		return selectedElevator;
         	}
         	
         	
