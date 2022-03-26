@@ -1,7 +1,5 @@
 package main;
 
-import java.lang.Math;
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 
@@ -152,18 +150,37 @@ class WaitPassEntryState extends ElevatorState {
         //check that we got a reply
         while (!s[0].equals("OK")) {
             //sending availible till we get a proper response
+<<<<<<< Updated upstream
             super.elevatorRef.send(new String[]{"ButtonReq", "" + super.elevatorRef.geteM().getFloor()}, "Floor");
         }
         //we've got a botton request, pass to Scheduler
         s = super.elevatorRef.send(new String[]{"ButtonPress", "" + super.elevatorRef.geteM().getFloor(), "" + s[1].charAt(4)}, "Scheduler");
         System.out.println("button press: " + s[1]);
         //check OK
+=======
+            s = super.elevatorRef.send(new String[]{"ButtonReq", "" + super.elevatorRef.geteM().getFloor()}, "Floor");
+        }
+        //we've got a botton request, pass to Scheduler
+        System.out.println("button press: " + s[1]);
+        s = super.elevatorRef.send(new String[]{"ButtonPress", "" + super.elevatorRef.geteM().getFloor(), "" + s[1].charAt(4)}, "Scheduler");
+
+        //check OK
+
+>>>>>>> Stashed changes
         while (!s[0].equals("OK")) {
             //sending availible till we get a proper response
             s = super.elevatorRef.send(new String[]{"ButtonPress", "" + super.elevatorRef.geteM().getFloor(),"" + s[1].charAt(4)}, "Scheduler");
         }
         //awesome, we've received the passenger...
         //add their destination to the top of the Q??
+<<<<<<< Updated upstream
+=======
+        LinkedList<Integer> q = super.elevatorRef.getQueue();
+        //always add passengers destination to the bottom of the queue idk if this works
+        q.addFirst(Character.getNumericValue(s[1].charAt(4)));
+        super.elevatorRef.setQueue(q);
+        super.elevatorRef.setFloorOk(true);
+>>>>>>> Stashed changes
         super.elevatorRef.next("Full");
     }
 
@@ -172,7 +189,9 @@ class WaitPassEntryState extends ElevatorState {
     }
 
     void goTo(int floor) {
-        //in this state, goTo is when the passenger sets a destination.
+        super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
+        /*
+        //in this state, goTo is ignored...?
         LinkedList<Integer> q = super.elevatorRef.getQueue();
         //always add passengers destination to the bottom of the queue
         q.addLast(floor);
@@ -180,7 +199,11 @@ class WaitPassEntryState extends ElevatorState {
         super.elevatorRef.setFloorOk(true);
         super.elevatorRef.reply(new String[]{"OK"}, "Scheduler");
         super.elevatorRef.next("Full");
+<<<<<<< Updated upstream
         super.elevatorRef.geteM().move(floor);
+=======
+        */
+>>>>>>> Stashed changes
     }
 
     void arrive() {

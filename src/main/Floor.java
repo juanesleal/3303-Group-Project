@@ -21,21 +21,50 @@ public class Floor {
     public static void main(String[] args) {
         Clock time = Clock.systemDefaultZone();
         Floor f = new Floor();
+<<<<<<< Updated upstream
         try {
             //testing
             Message m = f.floorCommunicator.receive();
+=======
+        // when floor gets a request send in the following format: "FloorRequest, time, where, Up/Down, buttonReq on arrival"
+        while (true) {
+            Message m = f.floorCommunicator.rpc_send(new Message(new String[] {"FloorRequest", "14:05:15.0", "4", "Up", "6"}, time.millis(), "Scheduler"));
+            while (m.getData()[0].equals("BadRequest")) {
+                //wait 0.5 seconds, send again
+                try {
+                    Thread.sleep(500);
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
+                m = f.floorCommunicator.rpc_send(new Message(new String[] {"FloorRequest", "14:05:15.0", "4", "Up", "6"}, time.millis(), "Scheduler"));
+            }
+            m = f.floorCommunicator.receive();
+>>>>>>> Stashed changes
             if (m.getData()[0].equals("ButtonReq")) {
                 //send a default value:
                 double rand = Math.random();
 
+<<<<<<< Updated upstream
                 f.floorCommunicator.send(new Message(new String[] {"OK","" + (((int)rand * 8) + 1)}, time.millis(), m.getToFrom()));
             }
+=======
+                f.floorCommunicator.send(new Message(new String[]{"OK", "" + (((int) rand * 8) + 1)}, time.millis(), m.getToFrom()));
+            }
+        }
+        //try {
+            //testing
+
+>>>>>>> Stashed changes
 
             //    Read floor data values from file
-            BufferedReader br = new BufferedReader(new FileReader("FloorEventTest.txt"));
-            Event fd;
+            //BufferedReader br = new BufferedReader(new FileReader("FloorEventTest.txt"));
+            //Event fd;
 
+<<<<<<< Updated upstream
             String line;
+=======
+            //String line;
+>>>>>>> Stashed changes
             /*
             while ((line = br.readLine()) != null) {
                 //    Read line and convert to floor data
@@ -66,10 +95,17 @@ public class Floor {
 
              */
 
+<<<<<<< Updated upstream
         }catch(IOException e) {
             System.err.println(e.getMessage());
         }
         System.out.println("== Floor Subsystem finished");
+=======
+        //}catch(IOException e) {
+            //System.err.println(e.getMessage());
+        //}
+        //System.out.println("== Floor Subsystem finished");
+>>>>>>> Stashed changes
 
 
     }

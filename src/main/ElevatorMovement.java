@@ -174,6 +174,10 @@ public class ElevatorMovement {
     }
 
     public double arriveWhen (int floor, double velocity) {
+<<<<<<< Updated upstream
+=======
+        //TODO return 0 if fastest possible time
+>>>>>>> Stashed changes
         //how far from the destination?
         double distance = Math.abs((floor - getFloor()) * height);
         System.out.println("dist: " + distance);
@@ -231,14 +235,23 @@ public class ElevatorMovement {
         if (time == 2000) {
             //they want us to solve for time.
             //this is a quadratic equation...
+<<<<<<< Updated upstream
             double determ = Math.sqrt(Math.pow(velocity, 2) - ((4 * acceleration / 2) * (0 - distance)));
+=======
+            double determ = Math.sqrt(Math.pow(velocity, 2) - ((4 * (Math.abs(acceleration)) / 2) * (0 - distance)));
+>>>>>>> Stashed changes
             double soln = (0 - velocity) + determ;
             if (soln < 0) {
                 //wrong soln, get the other
                 soln = (0 - velocity) - determ;
             }
+<<<<<<< Updated upstream
             System.out.println("time traveling at: " + velocity  + " accelerating at: " + acceleration + " for " + distance + "m is: " + (soln/acceleration));
             return (soln / (acceleration));
+=======
+            System.out.println("time traveling at: " + velocity  + " accelerating at: " + acceleration + " for " + distance + "m is: " + (soln/Math.abs(acceleration)));
+            return (soln / (Math.abs(acceleration)));
+>>>>>>> Stashed changes
         }else if (distance == 2000) {
             //the real world equation for this: ^x = vi*t + 1/2(a)(t^2)
             double dist = velocity * time;
