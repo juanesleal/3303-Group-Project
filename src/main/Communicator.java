@@ -15,7 +15,7 @@ public class Communicator {
 
     final int MAXELEVATORS = 9;
     //max amount of data that can me put in a message
-    final int MAXDATA = 5;
+    final int MAXDATA = 6;
     final int SCHEDULER_EPORT = 23;
     final int SCHEDULER_FPORT = 69;
     final int FLOOR_PORT = 28;

@@ -1,10 +1,15 @@
 package main;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.Clock;
+import java.util.LinkedList;
 
 public class Floor {
 
     private Communicator floorCommunicator;
+    private LinkedList<String[]> messages = new LinkedList<>();
 
     /**
      * Generates a new floor subsystem that communicates using the specified EventHolder
@@ -18,9 +23,10 @@ public class Floor {
     public static void main(String[] args) {
         Clock time = Clock.systemDefaultZone();
         Floor f = new Floor();
-        // when floor gets a request send in the following format: "FloorRequest, time, where, Up/Down, buttonReq on arrival"
-        while (true) {
-            Message m = f.floorCommunicator.rpc_send(new Message(new String[] {"FloorRequest", "14:05:15.0", "4", "Up", "6"}, time.millis(), "Scheduler"));
+        f.readAndSort();
+        for (String[] s : f.messages) {
+            System.out.println(s[0]);
+            Message m = f.floorCommunicator.rpc_send(new Message(s, time.millis(), "Scheduler"));
             while (m.getData()[0].equals("BadRequest")) {
                 //wait 0.5 seconds, send again
                 try {
@@ -28,57 +34,73 @@ public class Floor {
                 } catch(InterruptedException e) {
                     e.printStackTrace();
                 }
-                m = f.floorCommunicator.rpc_send(new Message(new String[] {"FloorRequest", "14:05:15.0", "4", "Up", "6"}, time.millis(), "Scheduler"));
-            }
-            m = f.floorCommunicator.receive();
-            if (m.getData()[0].equals("ButtonReq")) {
-                //send a default value:
-                double rand = Math.random();
-
-                f.floorCommunicator.send(new Message(new String[]{"OK", "" + (((int) rand * 8) + 1)}, time.millis(), m.getToFrom()));
+                m = f.floorCommunicator.rpc_send(new Message(s, time.millis(), "Scheduler"));
             }
         }
-        //try {
-            //testing
+        //all events sent to Scheduler, now we wait for button requests
+        Message m = f.floorCommunicator.receive();
+        if (m.getData()[0].equals("ButtonReq")) {
+            boolean ok = false;
+            //figure out which floor it's for...
+            for (String[] s : f.messages) {
+                if (m.getData()[1].equals(s[0])) {
+                    f.floorCommunicator.send(new Message(new String[]{"OK", s[3]}, time.millis(), m.getToFrom()));
+                    ok = true;
+                }
+            }
+            if (!ok) {
+                f.floorCommunicator.send(new Message(new String[]{"Request Not Availible"}, time.millis(), m.getToFrom()));
+            }
+        }
+        // when floor gets a request send in the following format: "FloorRequest, time, where, Up/Down, buttonReq on arrival"
 
+        //System.out.println("== Floor Subsystem finished");
+    }
+    private void readAndSort() {
+        try {
             //    Read floor data values from file
-            //BufferedReader br = new BufferedReader(new FileReader("FloorEventTest.txt"));
-            //Event fd;
+            BufferedReader br = new BufferedReader(new FileReader("FloorEventTest.txt"));
 
-            //String line;
-            /*
+            String line;
+
             while ((line = br.readLine()) != null) {
+
                 //    Read line and convert to floor data
                 //fd = Event.parseString(line);
 
                 //    Send data to scheduler
-                System.out.println("== Floor Subsystem sending data << " + line + " >> to schedular");
                 //FIXME
-                String[] data = line.split(" ", 3);
-                System.out.println(data[0]);
-                for (int i = 0; i<4; i++) {
-                    data[i] = data[i].trim();
-                }
+                String[] data = (line.replace("\t", "_")).split("_", 7);
+                String[] trimmedData = new String[data.length];
 
-                m = f.floorCommunicator.rpc_send(new Message(data, time.millis(), "Scheduler"));
-                while (!(m.getData()[0].equals("OK"))) {
-                    m = f.floorCommunicator.rpc_send(new Message(data, time.millis(), "Scheduler"));
+                for (int i = 0; i < data.length; i++) {
+                    if (!data[i].equals("")) {
+                        trimmedData[i] = data[i];
+                    }
                 }
-
-                //    Sleep unessesary since get and put wait for data
-                //Object receivedFd = this.eventHolder.getMsgF();
-               // System.out.println("== Floor Subsystem receiving data << " + receivedFd + " >> from schedular");
+                String[] messageData;
+                messageData = trimmedData;
+                //now we sort the messageData into the messageData LinkedList
+                if (!messages.isEmpty()) {
+                    for (int i =0; i < messages.size(); i++) {
+                        if (messages.get(i)[0].compareTo(messageData[0]) > 0) {
+                            //messageData is sooner then what already exists
+                            messages.add(i, messageData);
+                            break;
+                        }
+                    }
+                    //did we already add?
+                    if (!(messages.contains(messageData))) {
+                        //it is the largest so far
+                        messages.addLast(messageData);
+                    }
+                }else {
+                    messages.addFirst(messageData);
+                }
             }
-
-            //this.eventHolder.put(null);
-
             br.close();
-
-             */
-
-        //}catch(IOException e) {
-            //System.err.println(e.getMessage());
-        //}
-        //System.out.println("== Floor Subsystem finished");
+        }catch(IOException e) {
+            System.err.println(e.getMessage());
+        }
     }
 }

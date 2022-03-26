@@ -24,6 +24,8 @@ public class Elevator {
     private LinkedList<Integer> queue = new LinkedList<Integer>();
     private boolean floorOk = false;
     private boolean doorsOpen = false;
+    private String requestTime;
+
     Clock time = Clock.systemDefaultZone();
 
 
@@ -53,37 +55,14 @@ public class Elevator {
             if (m.getData()[0].equals("timeFor")) {
                 e.timeFor(Integer.parseInt(m.getData()[1]));
             }else if (m.getData()[0].equals("goTo")) {
-                e.goTo(Integer.parseInt(m.getData()[1]));
+                //check whether the goTo is being ignored
+                if (e.goTo(Integer.parseInt(m.getData()[1]))) {
+                    //set the request time since it uniquely identifies the request, we need this on arrival
+                    e.requestTime = m.getData()[2];
+                }
             }
             System.out.println("state: "+ e.currentState);
         }
-
-        //TODO do some states... idk
-        /*
-        //first things first, INIT
-        states[currentState].entry();
-        next(1);
-        while (true) {
-            //wait for message
-            long x = 1000;
-            Message event = send;
-            if (event.getFunc() == "timeFor") {
-                states[currentState].timeFor(event.getFloor());
-                next(0);
-            }else if (event.getFunc() == "goTo") {
-                states[currentState].goTo(event.getFloor());
-                if (floorOk) {
-                    //move the elevator
-                    eM.move(event.getFloor());
-                    next(1);
-                }else{
-                    next(0);
-                }
-            }
-            //we've received a message from Scheduler, we need to parse it to find out where we should go.
-            eventHolder.put("Elevator Data");
-        }
-        */
     }
 
     public void next(String n) {
@@ -128,9 +107,9 @@ public class Elevator {
         states[currentState].timeFor(floor);
     }
 
-    public void goTo(int floor) {
+    public boolean goTo(int floor) {
 
-        states[currentState].goTo(floor);
+        return states[currentState].goTo(floor);
     }
 
     public void arrive() {
@@ -139,6 +118,10 @@ public class Elevator {
 
     public LinkedList<Integer> getQueue() {
         return queue;
+    }
+
+    public String getRequestTime() {
+        return requestTime;
     }
 
     public void setQueue(LinkedList<Integer> q) {

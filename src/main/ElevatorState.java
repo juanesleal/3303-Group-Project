@@ -15,7 +15,7 @@ abstract class ElevatorState {
 
     abstract void entry();
     abstract void timeFor(int floor);
-    abstract void goTo(int floor);
+    abstract boolean goTo(int floor);
     abstract void arrive();
 }
 
@@ -40,8 +40,8 @@ class InitState extends ElevatorState {
 
     }
 
-    void goTo(int floor) {
-
+    boolean goTo(int floor) {
+        return false;
     }
 
     void arrive() {
@@ -66,7 +66,7 @@ class IdleState extends ElevatorState {
         super.elevatorRef.reply(new String[]{msg}, "Scheduler");
     }
 
-    void goTo(int floor) {
+    boolean goTo(int floor) {
         //add to queue, send OK, change states, and start moving
         LinkedList<Integer> addDest = new LinkedList<Integer>();
         //need to add at front
@@ -75,6 +75,7 @@ class IdleState extends ElevatorState {
         super.elevatorRef.setFloorOk(true);
         super.elevatorRef.reply(new String[]{"OK"}, "Scheduler");
         super.elevatorRef.next("Empty");
+        return true;
     }
 
     void arrive() {
@@ -102,10 +103,11 @@ class EmptyTState extends ElevatorState {
 
     }
 
-    void goTo(int floor) {
+    boolean goTo(int floor) {
         if (super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity()) == 2000) {
             //2000 is an error it means we can't get to the given floor
             super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
+            return false;
         }else {
             //this probably means we can stop at this destination on the way to our current...
             LinkedList<Integer> q = super.elevatorRef.getQueue();
@@ -114,6 +116,7 @@ class EmptyTState extends ElevatorState {
             super.elevatorRef.setFloorOk(true);
             super.elevatorRef.geteM().move(floor);
             super.elevatorRef.reply(new String[]{"OK"}, "Scheduler");
+            return true;
         }
     }
 
@@ -146,21 +149,21 @@ class WaitPassEntryState extends ElevatorState {
         }
         //close doors
         super.elevatorRef.setDoorsOpen(false);
-        String[] s = super.elevatorRef.send(new String[]{"ButtonReq", "" + super.elevatorRef.geteM().getFloor()}, "Floor");
+        String[] s = super.elevatorRef.send(new String[]{"ButtonReq", super.elevatorRef.getRequestTime()}, "Floor");
         //check that we got a reply
         while (!s[0].equals("OK")) {
             //sending availible till we get a proper response
-            s = super.elevatorRef.send(new String[]{"ButtonReq", "" + super.elevatorRef.geteM().getFloor()}, "Floor");
+            s = super.elevatorRef.send(new String[]{"ButtonReq", super.elevatorRef.getRequestTime()}, "Floor");
         }
         //we've got a botton request, pass to Scheduler
         System.out.println("button press: " + s[1]);
-        s = super.elevatorRef.send(new String[]{"ButtonPress", "" + super.elevatorRef.geteM().getFloor(), "" + s[1]}, "Scheduler");
+        s = super.elevatorRef.send(new String[]{"ButtonPress", super.elevatorRef.getRequestTime(), "" + s[1]}, "Scheduler");
 
         //check OK
 
         while (!s[0].equals("OK")) {
             //sending availible till we get a proper response
-            s = super.elevatorRef.send(new String[]{"ButtonPress", "" + super.elevatorRef.geteM().getFloor(),"" + s[1].charAt(4)}, "Scheduler");
+            s = super.elevatorRef.send(new String[]{"ButtonPress", super.elevatorRef.getRequestTime(),"" + s[1].charAt(4)}, "Scheduler");
         }
         //awesome, we've received the passenger...
         //add their destination to the top of the Q??
@@ -177,8 +180,9 @@ class WaitPassEntryState extends ElevatorState {
         super.elevatorRef.reply(new String[]{"NotAvailible"}, "Scheduler");
     }
 
-    void goTo(int floor) {
+    boolean goTo(int floor) {
         super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
+        return false;
         /*
         //in this state, goTo is ignored...?
         LinkedList<Integer> q = super.elevatorRef.getQueue();
@@ -242,10 +246,11 @@ class FullTState extends ElevatorState {
        super.elevatorRef.reply(new String[]{msg}, "Scheduler");
     }
 
-    void goTo(int floor) {
+    boolean goTo(int floor) {
         if (super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity()) == 2000) {
             //2000 is an error it means we can't get to the given floor
             super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
+            return false;
         }else {
             //this probably means we can stop at this destination on the way to our current...
             LinkedList<Integer> q = super.elevatorRef.getQueue();
@@ -254,6 +259,7 @@ class FullTState extends ElevatorState {
             super.elevatorRef.setFloorOk(true);
             super.elevatorRef.geteM().move(floor);
             super.elevatorRef.reply(new String[]{"OK"}, "Scheduler");
+            return true;
         }
         /*
         if (super.elevatorRef.isFloorOk()) {
@@ -308,8 +314,8 @@ class WaitPassExitState extends ElevatorState {
 
     }
 
-    void goTo(int floor) {
-
+    boolean goTo(int floor) {
+        return false;
     }
 
     void arrive() {
