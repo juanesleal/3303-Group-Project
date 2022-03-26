@@ -253,10 +253,7 @@ public class Communicator {
                     if (character == 1) {
                         //next String
                         count++;
-<<<<<<< Updated upstream
-=======
                         data[count] = "";
->>>>>>> Stashed changes
                     }else {
                         //put each char from the string into the string
                         data[count] += (char)character;
@@ -303,10 +300,7 @@ public class Communicator {
                     if (character == 1) {
                         //next String
                         count++;
-<<<<<<< Updated upstream
-=======
                         data[count] = "";
->>>>>>> Stashed changes
                     }else {
                         //put each char from the string into the string
                         data[count] += (char)character;

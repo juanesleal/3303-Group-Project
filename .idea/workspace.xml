@@ -1,39 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b24f9cbe-f58d-4c6b-beb9-95a7c407c1e4" name="Default Changelist" comment="" />
+    <list default="true" id="d01e2e36-47bd-41fb-ae76-0df9006cd414" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/3303-Group-Project.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/Communicator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Communicator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/ElevatorMovement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/ElevatorMovement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/ElevatorState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/ElevatorState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/Floor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Floor.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Interface" />
-        <option value="Class" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectId" id="25J32fb3hGNDXW7TjKElDS8dvnL" />
+  <component name="ProjectId" id="26w86qOHpbVxL6TXHgeLSE05DIr" />
   <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="flattenPackages" value="true" />
     <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Cameron\Documents\SYSC3303\3303-Group-Project\src\main" />
+    </key>
   </component>
   <component name="RunManager" selected="Application.Elevator2">
-    <configuration name="Elevator" type="Application" factoryName="Application" singleton="false" temporary="true" nameIsGenerated="true">
+    <configuration name="Elevator1" type="Application" factoryName="Application" temporary="true">
       <option name="MAIN_CLASS_NAME" value="main.Elevator" />
-      <module name="ProjectIteration2" />
+      <module name="3303-Group-Project" />
       <option name="PROGRAM_PARAMETERS" value="1" />
       <extension name="coverage">
         <pattern>
@@ -47,7 +52,7 @@
     </configuration>
     <configuration name="Elevator2" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="main.Elevator" />
-      <module name="ProjectIteration2" />
+      <module name="3303-Group-Project" />
       <option name="PROGRAM_PARAMETERS" value="2" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -55,20 +60,7 @@
     </configuration>
     <configuration name="Floor" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="main.Floor" />
-      <module name="ProjectIteration2" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="main.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="MovementTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="main.MovementTest" />
-      <module name="ProjectIteration2" />
+      <module name="3303-Group-Project" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="main.*" />
@@ -81,7 +73,7 @@
     </configuration>
     <configuration name="Scheduler" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="main.Scheduler" />
-      <module name="ProjectIteration2" />
+      <module name="3303-Group-Project" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="main.*" />
@@ -92,34 +84,26 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="StateTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="main.StateTest" />
-      <module name="ProjectIteration2" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="main.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
+    <configuration name="Scheduler2" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="main.Scheduler" />
+      <module name="3303-Group-Project" />
+      <option name="PROGRAM_PARAMETERS" value="2" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <list>
+      <item itemvalue="Application.Scheduler2" />
       <item itemvalue="Application.Elevator2" />
-      <item itemvalue="Application.Elevator" />
+      <item itemvalue="Application.Elevator1" />
       <item itemvalue="Application.Floor" />
-      <item itemvalue="Application.MovementTest" />
       <item itemvalue="Application.Scheduler" />
-      <item itemvalue="Application.StateTest" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Elevator" />
-        <item itemvalue="Application.Scheduler" />
+        <item itemvalue="Application.Elevator1" />
         <item itemvalue="Application.Floor" />
-        <item itemvalue="Application.MovementTest" />
-        <item itemvalue="Application.StateTest" />
+        <item itemvalue="Application.Scheduler" />
       </list>
     </recent_temporary>
   </component>
@@ -140,66 +124,38 @@
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="b24f9cbe-f58d-4c6b-beb9-95a7c407c1e4" name="Default Changelist" comment="" />
-      <created>1645231156792</created>
+      <changelist id="d01e2e36-47bd-41fb-ae76-0df9006cd414" name="Default Changelist" comment="" />
+      <created>1648323115854</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1645231156792</updated>
+      <updated>1648323115854</updated>
     </task>
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="734" y="356" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1647145371744">
+    <state x="537" y="430" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1648324172268">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="734" y="356" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647145371744" />
-    <state x="1085" y="410" key="#com.intellij.ide.util.MemberChooser" timestamp="1647037893700">
+    <state x="537" y="430" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1648324172268" />
+    <state x="1009" y="485" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1648324169365">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1085" y="410" key="#com.intellij.ide.util.MemberChooser/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647037893700" />
-    <state x="1009" y="485" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1647144151316">
+    <state x="1009" y="485" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1648324169365" />
+    <state width="2517" height="362" key="GridCell.Tab.0.bottom" timestamp="1648324323765">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1009" y="485" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647144151316" />
-    <state x="1059" y="442" key="FileChooserDialogImpl" timestamp="1647031417499">
+    <state width="2517" height="362" key="GridCell.Tab.0.bottom/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1648324323765" />
+    <state width="2517" height="362" key="GridCell.Tab.0.center" timestamp="1648324323765">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1059" y="442" key="FileChooserDialogImpl/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647031417499" />
-    <state width="2517" height="859" key="GridCell.Tab.0.bottom" timestamp="1647147065300">
+    <state width="2517" height="362" key="GridCell.Tab.0.center/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1648324323765" />
+    <state width="2517" height="362" key="GridCell.Tab.0.left" timestamp="1648324323765">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="859" key="GridCell.Tab.0.bottom/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647147065300" />
-    <state width="2517" height="859" key="GridCell.Tab.0.center" timestamp="1647147065300">
+    <state width="2517" height="362" key="GridCell.Tab.0.left/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1648324323765" />
+    <state width="2517" height="362" key="GridCell.Tab.0.right" timestamp="1648324323765">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="859" key="GridCell.Tab.0.center/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647147065300" />
-    <state width="2517" height="859" key="GridCell.Tab.0.left" timestamp="1647147065299">
-      <screen x="0" y="0" width="2560" height="1400" />
-    </state>
-    <state width="2517" height="859" key="GridCell.Tab.0.left/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647147065299" />
-    <state width="2517" height="859" key="GridCell.Tab.0.right" timestamp="1647147065300">
-      <screen x="0" y="0" width="2560" height="1400" />
-    </state>
-    <state width="2517" height="859" key="GridCell.Tab.0.right/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647147065300" />
-    <state x="945" y="400" key="NewModule_or_Project.wizard" timestamp="1646931430697">
-      <screen x="0" y="0" width="2560" height="1400" />
-    </state>
-    <state x="945" y="400" key="NewModule_or_Project.wizard/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1646931430697" />
-    <state x="781" y="343" key="SettingsEditor" timestamp="1647129938422">
-      <screen x="0" y="0" width="2560" height="1400" />
-    </state>
-    <state x="781" y="343" key="SettingsEditor/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1647129938422" />
-    <state x="976" y="525" key="com.intellij.ide.util.TipDialog" timestamp="1646410074673">
-      <screen x="0" y="0" width="2560" height="1400" />
-    </state>
-    <state x="976" y="525" key="com.intellij.ide.util.TipDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1646410074673" />
-    <state x="662" y="321" key="new project wizard" timestamp="1646931405164">
-      <screen x="0" y="0" width="2560" height="1400" />
-    </state>
-    <state x="662" y="321" key="new project wizard/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1646931405164" />
-    <state x="943" y="315" width="672" height="678" key="search.everywhere.popup" timestamp="1646509242572">
-      <screen x="0" y="0" width="2560" height="1400" />
-    </state>
-    <state x="943" y="315" width="672" height="678" key="search.everywhere.popup/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1646509242572" />
+    <state width="2517" height="362" key="GridCell.Tab.0.right/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1648324323765" />
   </component>
 </project>
