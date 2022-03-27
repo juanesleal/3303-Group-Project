@@ -169,10 +169,16 @@ public class Scheduler {
                             //m = s.eCommunicator.rpc_send(new Message(new String[] {"timeFor", "5"}, time.millis(), "Elevator1"));
                         }else {
                             //FIXME loop till they send OK or pick the next best elevator
+                        	while(!m.getData()[0].equals("OK")) {
+                        		
+
+                        		}
+                        	}
                         }
                         //elevator sent, update timeTillRequest
                         s.timeTillRequest[0] += " Ordered";
                         //FIXME maybe add a state here...
+                        
                         break;
                         }
                     break;
@@ -224,7 +230,7 @@ public class Scheduler {
         }
     }
     enum State {
-        INIT, EVENTWAIT, ELEVWAIT, SCHEDULING
+        INIT, EVENTWAIT, ELEVWAIT, SCHEDULING;
     }
     private State next() {
         State[] states = State.values();
@@ -349,4 +355,3 @@ public class Scheduler {
  *
  *         }
  */
-
