@@ -24,7 +24,11 @@ public class Elevator {
     private LinkedList<Integer> queue = new LinkedList<Integer>();
     private boolean floorOk = false;
     private boolean doorsOpen = false;
+    private float travelFault;
+    private int doorFault;
     private String requestTime;
+    private boolean shutdown = false;
+    private boolean arrived = false;
 
     Clock time = Clock.systemDefaultZone();
 
@@ -45,21 +49,34 @@ public class Elevator {
         //testing
 
         while (true) {
-            //TODO check if arrived
-
             e.entry();
-            //receive a message
-            Message m = e.communicator.receive();
-            System.out.println("state: "+ e.currentState);
-            System.out.println(m.getData()[0]);
-            if (m.getData()[0].equals("timeFor")) {
-                e.timeFor(Integer.parseInt(m.getData()[1]));
-            }else if (m.getData()[0].equals("goTo")) {
-                //check whether the goTo is being ignored
-                if (e.goTo(Integer.parseInt(m.getData()[1]))) {
-                    //set the request time since it uniquely identifies the request, we need this on arrival
-                    e.requestTime = m.getData()[2];
+            if (!e.arrived) {
+                //receive a message
+                Message m = e.communicator.receive(0);
+                System.out.println("state: " + e.currentState);
+                System.out.println(m.getData()[0]);
+                if (m.getData()[0].equals("timeFor")) {
+                    e.timeFor(Integer.parseInt(m.getData()[1]));
+                } else if (m.getData()[0].equals("goTo") && !(m.getData()[2].equals("notNecessary"))) {
+                    e.travelFault = Float.parseFloat(m.getData()[1].charAt(1) + "");
+                    e.travelFault = Integer.parseInt(m.getData()[1].charAt(2) + "");
+                    //check whether the goTo is being ignored
+                    if (e.goTo(Integer.parseInt(m.getData()[1].charAt(0) + ""))) {
+                        //set the request time since it uniquely identifies the request, we need this on arrival
+                        e.requestTime = m.getData()[2];
+                    }
+                } else if (m.getData()[0].equals("DoorStatus")) {
+                    if (e.doorsOpen) {
+                        e.reply(new String[]{"Status", "Open"}, "Scheduler");
+                    } else {
+                        e.reply(new String[]{"Status", "Closed"}, "Scheduler");
+                    }
+                } else if (m.getData()[0].equals("SHUTDOWN")) {
+                    e.shutdown = true;
                 }
+            } else {
+                //we already did all the work when the arrive func was called.
+                e.arrived = false;
             }
             System.out.println("state: "+ e.currentState);
         }
@@ -99,6 +116,14 @@ public class Elevator {
         communicator.send(new Message(msg, time.millis(), to));
     }
 
+    public float getTravelFault() {
+        return travelFault;
+    }
+
+    public int getDoorFault() {
+        return doorFault;
+    }
+
     public void entry() {
         states[currentState].entry();
     }
@@ -113,6 +138,7 @@ public class Elevator {
     }
 
     public void arrive() {
+        arrived = true;
         states[currentState].arrive();
     }
 

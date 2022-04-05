@@ -1,0 +1,443 @@
+package main;
+
+
+//TODO
+// apperently this system is responsible for handling faults like an elevator's doors not opening,
+// an elevator getting stuck between floors, and packet loss...
+// I'm not sure how you would solve these issues without just designing them out ie: get reply messages for everything,
+// and make sure an elevator doesn't move until it gets a reply.
+// The elevator should just be designed to never move if the doors are open... why should the scheduler have to do this?
+//TODO apperently roughly half of the people will come in at the GROUND Floor
+
+/**
+ * NOTE, you may want to use threads so we can receive communications from Floor and from Elevator.
+ *
+ *
+ * receive from elevator (look for "Availible")
+ *          check if valid, send response
+ * receive from Floor (add data to queue (chronologically, according to the time in the data.))
+ *          check if valid, send response
+ * loop(while queue has something)
+ *      handle event
+ *          ask elevators how long till they get to the floor (if no reply, all elevators are busy)
+ *              wait for reply, store in timeTillRequest[1] = time for elevator 1, [2] is for elevator 2...
+ *              NOTE might be worthwhile to store a minimum possible time for an elevator to get to a floor. (Elevator responds to time request with a flag for minimum possible time.)
+ *          process that
+ *          ask 1 elevator to go to the floor (set a timer for the amount that they said it would take them to get there)
+ *              wait for reply (if they say NO, we need to ask the next best Elevator)
+ *      loop
+ */
+
+import java.time.Clock;
+import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class Scheduler implements runnable{
+    private Communicator eCommunicator;
+    private Communicator fCommunicator;
+    private LinkedList<Message> queue =  new LinkedList<>();
+    //todo maybe have this sorted, if it is sorted, then it needs to be a list or smth
+    //time TillRequest[0] is the floor for which the times are relevant
+    private String[] timeTillRequest;
+    private int elevCount;
+    //we use timtillrequests as a checker to see how many elevators sent availible, since timetillReq[0] == the floor number, we'll skip it.
+    private int next = 1;
+    private State currentState = State.INIT;
+    Clock time = Clock.systemDefaultZone();
+    private Timer timer = new Timer();
+    private TimerTask checkArrive = new TimerTask() {
+        @Override
+        public void run() {
+            System.out.println("Timer going: ");
+            //reset the timeTillRequest, not sure what that is rn...
+            Scheduling();
+        }
+    };
+
+    public Scheduler(int i) {
+        elevCount = i;
+        Communicator com = new Communicator();
+        eCommunicator = new Communicator(com.SCHEDULER_EPORT, "Scheduler");
+        fCommunicator = new Communicator(com.SCHEDULER_FPORT, "Scheduler");
+        timeTillRequest = new String[elevCount + 1];
+    }
+    
+    public void run() {
+    	this.main(new String[] {});
+    }
+
+    public static void main(String[] args) {
+        //IMPORTANT: ARGS[0] is the amount of elevators we have... if null, 1 elevator is the default
+        Scheduler s;
+        if (args.length != 0) {
+            s = new Scheduler(Integer.parseInt(args[0]));
+        }else {
+            s = new Scheduler(1);
+        }
+
+
+        while(s.currentState != null) {
+            System.out.println("test" + s.currentState);
+            //state machine by Cameron
+            switch (s.currentState) {
+                case INIT:
+                    System.out.println("Scheduler " + s.currentState);
+                    //just go to the next state
+                    s.currentState = s.next();
+                    //don't break, we've received a message so we may as well hear it out.
+                case EVENTWAIT:
+                    System.out.println("Scheduler " + s.currentState);
+                    Message m = s.fCommunicator.receive(0);
+                    s.fCommunicator.send(s.EventWait(m));
+                    break;
+                case ELEVWAIT:
+                    System.out.println("Scheduler " + s.currentState);
+                    System.out.println("check");
+                    m = s.eCommunicator.receive(0);
+                    s.eCommunicator.send(s.ElevWait(m));
+                    break;
+                case GETDATA:
+                    System.out.println("Scheduler " + s.currentState);
+                    //getData does all the work for us...
+                    s.GetData();
+                    break;
+                case SCHEDULING:
+                    System.out.println("Scheduler " + s.currentState);
+                    m = s.Scheduling();
+                    if (m.getData()[0].equals("SHUTDOWN")) {
+                        s.currentState = null;
+                        break;
+                    }
+                    s.eCommunicator.send(m);
+            }
+        }
+
+    }
+    public enum State {
+        INIT, EVENTWAIT, ELEVWAIT, GETDATA, SCHEDULING;
+    }
+    private State next() {
+        State[] states = State.values();
+        int current = 0;
+        //just cycle till we hit current state, return it.
+        while (states[current] != currentState) {
+            current++;
+        }
+        return states[current + 1];
+    }
+    private State prev() {
+        State[] states = State.values();
+        int current = 0;
+        //just cycle till we hit current state, return it.
+        for (int i = 0; states[i] != currentState; i++) {
+            current = i;
+        }
+        return states[current - 1];
+    }
+    
+    public State getCurrentState() {
+    	return currentState;
+    }
+
+    public Message EventWait(Message m) {
+        System.out.println(m.getData()[0]);
+        //waiting for an event
+        if (m.getData()[0].equals("FloorRequest")) {
+            //add this to the queue
+            queue.add(m);
+            //set timeTillRequest
+            System.out.println(m.getData()[2]);
+            timeTillRequest[0] = m.getData()[2]  + m.getData()[5] + m.getData()[6] + m.getData()[1];
+            //go to the next state
+            currentState = next();
+            //send OK back to wherever we got it
+            return new Message(new String[]{"OK"}, time.millis(), m.getToFrom());
+        }else {
+            //we received something else, probably an Elevator saying availible...
+            //want to send something back so the sender can resend later.
+            return new Message(new String[]{"BadRequest"}, time.millis(), m.getToFrom());
+        }
+    }
+
+    public Message ElevWait(Message m) {
+        System.out.println(m.getData()[0]);
+        //waiting for elevator
+        if (m.getData()[0].equals("Availible")) {
+            //this may be confusing, but basically check if we have set all the timeTillRequests, and that the current one isn't the same sender as the previous
+            System.out.println(next + "  " + timeTillRequest.length + " " + Character.getNumericValue(m.getToFrom().charAt(8)));
+            if (next == (timeTillRequest.length - 1) && Character.getNumericValue(m.getToFrom().charAt(8)) != (next - 1)){
+                timeTillRequest[next] = "avail";
+                //Scheduler needs this at 1
+                next = 1;
+                //great, send ok
+                //go to the next state
+                currentState = next();
+            }else {
+                timeTillRequest[next++] = "avail";
+            }
+            return new Message(new String[]{"OK"}, time.millis(), m.getToFrom());
+        }else {
+            //we received something else, probably a floor request
+            //want to send something back so the sender can resend later.
+            return new Message(new String[]{"BadRequest"}, time.millis(), m.getToFrom());
+        }
+    }
+    public void GetData() {
+        if (queue.size() > 1) {
+            //this means we have not handled a previous request...
+            System.out.println("handling previous: " + queue.getFirst().getData()[2]);
+            timeTillRequest[0] = queue.getFirst().getData()[2]  + queue.getFirst().getData()[5] + queue.getFirst().getData()[6] + queue.getFirst().getData()[1];
+        }
+        Message m;
+        //start processing a request, maybe seperate this into a function....
+        //now loop and ask everyone for their floor times.
+        while (next != timeTillRequest.length) {
+            //ask for the time for desired request sent to the elevators in order
+            m = eCommunicator.rpc_send(new Message(new String[] {"timeFor", timeTillRequest[0].charAt(0) + ""}, time.millis(),  "Elevator" + next));
+            //message received
+            if (m.getData()[0].equals("0")) {
+                //Elevator sends time = 0 whenever they have the fastest possible time, immediately send them.
+                timeTillRequest[next] = m.getData()[0];
+                m = eCommunicator.rpc_send(new Message(new String[]{"goTo", timeTillRequest[0].substring(0, 3), timeTillRequest[0].substring(3)}, time.millis(), "Elevator" + next));
+                if (m.getData()[0].equals("OK")) {
+                    //awesome, set timer, do stuff..
+                    //elevator sent, update timeTillRequest
+                    timeTillRequest[0] += " Ordered";
+                    //schedule a timer with a default 5 seconds (minimum time estimate)
+                    timer.schedule(checkArrive, 1000);
+                    //check for a new Event...
+                    currentState = State.EVENTWAIT;
+                    return;
+                }
+            }else {
+                if (Character.getNumericValue(m.getToFrom().charAt(8)) == next) {
+                    timeTillRequest[next] = m.getData()[0];
+                }else {
+                    eCommunicator.send(new Message(new String[]{"BadRequest"}, time.millis(), m.getToFrom()));
+                }
+
+            }
+            next++;
+        }
+        //got all the Elevator times, nobody was min time. s.next must be > the last elevator id
+        int min = 1;
+        for (int i = 1; i < next; i++) {
+            if (timeTillRequest[i].compareTo(timeTillRequest[min]) < 0) {
+                //current time is less then the existing minimum time
+                min = i;
+            }
+        }
+        //send a goTo to the minimum elevator
+        m = eCommunicator.rpc_send(new Message(new String[]{"goTo", timeTillRequest[0].substring(0, 3), timeTillRequest[0].substring(3)}, time.millis(), "Elevator" + min));
+        while(!m.getData()[0].equals("OK")) {
+            //note this is destructive, we wish to look for a new Minimum
+            timeTillRequest[min] = "2000";
+            //got all the Elevator times, nobody was min time. s.next must be > the last elevator id
+            min = 1;
+            for (int i = 1; i < next; i++) {
+                if (timeTillRequest[i].compareTo(timeTillRequest[min]) < 0) {
+                    //current time is less then the existing minimum time
+                    min = i;
+                }
+            }
+            //min recalculated...
+            //send a goTo to the minimum elevator
+            m = eCommunicator.rpc_send(new Message(new String[]{"goTo", timeTillRequest[0].substring(0, 3), timeTillRequest[0].substring(3)}, time.millis(), "Elevator" + min));
+        }
+        //elevator sent, update timeTillRequest
+        timeTillRequest[0] += " Ordered";
+        //schedule a timer for the amount of time it will take them to get there.
+        timer.schedule(checkArrive, (int) ((1000) * Math.floor(Double.parseDouble(timeTillRequest[min]))));
+        //check for a new Event...
+        currentState = State.EVENTWAIT;
+    }
+    public Message Scheduling() {
+        System.out.println("Scheduling " + currentState);
+        //wait only 1 second longer
+        Message m = eCommunicator.receive(1000);
+        if (m.getData()[0] .equals("TimeOut")) {
+            //shutdown
+            System.out.println("Scheduling Timed out");
+            return new Message(new String[] {"SHUTDOWN"}, time.millis(), "Scheduler");
+        }
+
+        if (m.getData()[0].equals("Arrived")) {
+            System.out.println("Scheduling arrived: " + (int) Double.parseDouble(m.getData()[1]));
+            System.out.println("Scheduling arrived: " + queue.getFirst().getData()[2]);
+            if (((int)Double.parseDouble(m.getData()[1])) == Integer.parseInt(queue.getFirst().getData()[2])) {
+                //we arrived at the first element in the queue
+                //check for buttonPress and handle...
+                //only wait half a second
+                m = eCommunicator.receive(500);
+                if (m.getData()[0].equals("ButtonPress")) {
+                    String request = m.getData()[2];
+                    //check that their doors have closed...
+                    eCommunicator.send(new Message(new String[]{"OK"}, time.millis(), m.getToFrom()));
+                    m = eCommunicator.rpc_send(new Message(new String[]{"DoorStatus"}, time.millis(), m.getToFrom()));
+                    if (m.getData()[0].equals("Status")) {
+                        if (m.getData()[1].equals("Closed")) {
+                            //doors are closed, good...
+                            //tell the elevator to go to the given floor...
+                            return new Message(new String[]{"goTo", request, "notNecessary"}, time.millis(), m.getToFrom());
+                        }
+                    }
+                }
+            }
+
+            //some error prevented the Elevator to work...
+            //could be that the doors are stuck open or closed, elevator didn't arrive... all kinds of stuff...
+            //send a new elevator
+            currentState = State.GETDATA;
+            return new Message(new String[]{"SHUTDOWN"}, time.millis(), m.getToFrom());
+        }
+        return new Message(new String[]{"BadRequest"}, time.millis(), m.getToFrom());
+    }
+}
+
+
+
+            /*
+            if (m.getData()[0].equals("Arrived")) {
+                m = s.eCommunicator.rpc_send(new Message(new String[] {"timeFor", "5"}, time.millis(), m.getToFrom()));
+            }
+            if (m.getData()[0].equals("Availible")) {
+                //send OK back to wherever we got it
+                s.eCommunicator.send(new Message(new String[]{"OK"}, time.millis(), m.getToFrom()));
+                m = s.eCommunicator.rpc_send(new Message(new String[] {"timeFor", "5"}, time.millis(),  m.getToFrom()));
+
+
+                s.timeTillRequest[Character.getNumericValue(m.getToFrom().charAt(8))] = m.getData()[0];
+                s.next++;
+            }
+            if (s.next == 2) {
+                if (s.timeTillRequest[1].compareTo(s.timeTillRequest[2]) < 0) {
+                    m = s.eCommunicator.rpc_send(new Message(new String[]{"goTo", "5"}, time.millis(), "Elevator" + 1));
+                } else {
+                    m = s.eCommunicator.rpc_send(new Message(new String[]{"goTo", "5"}, time.millis(), "Elevator" + 2));
+                }
+                if (m.getData()[0].equals("OK")) {
+                    try {
+                        Thread.sleep(7000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    //ping to check their time and shit...
+                    m = s.eCommunicator.rpc_send(new Message(new String[]{"timeFor", "5"}, time.millis(), m.getToFrom()));
+
+                    //m = s.eCommunicator.rpc_send(new Message(new String[] {"timeFor", "5"}, time.millis(), "Elevator1"));
+                }
+            }
+            if (m.getData()[0].equals("ButtonPress")) {
+                //normally would process... but i don't care.
+                s.eCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
+                try {
+                    Thread.sleep(1000);
+                }catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                m = s.eCommunicator.rpc_send(new Message(new String[] {"goTo", "" + m.getData()[2].charAt(4)}, time.millis(), m.getToFrom()));
+            }
+
+             */
+
+/**
+ * *****************************************Juan Leal's Scheduler
+ * //this should be looping I am not sure if that is what the while loop is for or not but if it isnt then i will place it in its own loop
+ *             public void StateMachine(Message m) {
+ *
+ * 				if (currentState == State.IDLE && m.getData()[0].equals("Availible")) {
+ * 					currentState = State.AVAILABLE;
+ *
+ *                                } else if (currentState == State.UNAVAILABLE && m.getData()[0].equals("Availible")) {
+ *         			//gets the direction of the chosen elevator depending on the button input then decides which way it will go
+ *
+ * 					Elevator givenElevator = selectElevator(elevator1,elevator2);
+ * 					currentDirection= givenElevator.getDirection();
+ *
+ *         			if (Event.getButtonEvent().getDirection() != currentDirection) {
+ *
+ *         				addtoPendingJobs(event);
+ *
+ *                    } else if (event.getButtonevent().getDirection() == currentDirection) {
+ *
+ * 						if (currentDirection == Direction.UP && givenElevator.getDestinationFloor() < currentFloor) {
+ *         					//should be code here to send a message to the elevator to move just wasnt sure how to implement it
+ *
+ * 							s.schedulerCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
+ * 							addtoPendingJobs(event);
+ *
+ *
+ *                        } else if (currentDirection == Direction.DOWN && givenElevator.getDestinationFloor() > currentFloor) {
+ *         					//should be code here to send a message to the elevator to move just wasnt sure how to implement it
+ *
+ *
+ *         					addtoPendingJobs(event);
+ *
+ *
+ *
+ *                        } else {
+ *         					//CurrentJobs is just a placeholder might just change it to a list or something that holds the list of current jobs for up and down
+ * 							currentJobs.add(event);
+ *                        }
+ *
+ *                    }
+ *
+ *                }
+ *         		else if(currentState == State.UNAVAILABLE && m.getData()[0].equals("Unavailible")) {
+ *         			//wait for message to be sent then set State to available
+ *         			currentState = State.AVAILABLE;
+ *
+ *
+ *                }
+ **         	}
+ *         }
+ *
+ *             //Stores the tasks at hand if elevators or scheduler are busy
+ *         	public void addtoPendingJobs(Event event) {
+ *
+ *         		if (event.getEvent().getDirectionToGo() == Direction.UP) {
+ *         			System.out.println("Add to pending up jobs");
+ *         			upPending                ent);
+ *         		}
+ *
+ *         		else {
+ *         			System.out.println("Add to pending down jobs");
+ *
+ * 					downPending                ent);
+ *            }
+ *         	}
+ *
+ *
+ *         	//Selects the best elevator depending on the floor where the request was made
+ *         	public Elevator selectElevator(Elevator elevator1, Elevator elevator2) {
+ *         		Elevator selectedElevator;
+ *         		if (currentFloor - elevator2.getFloor() < currentFloor - elevator1.getFloor()) {
+ *         		selectedElevator = elevator2;*
+ *
+ *         		}
+ *         		else if (currentFloor - elevator1.getFloor() < currentFloor - elevator2.getFloor()) {
+ *         		selectedEle                vator1;
+ *
+ *
+ *         		}
+ *         		            ectedElevator;
+ *         	}
+ *
+ *
+ *
+ *         }
+ *
+ *
+ *         enum State {
+ *
+ *         	UNAVAILABLE, AVAILABLE, IDLE
+ *
+ *         }
+ *
+ *         enum Direction {
+ *
+ *         	UP, DOWN
+ *
+ *         }
+ */

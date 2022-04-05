@@ -15,7 +15,7 @@ public class Communicator {
 
     final int MAXELEVATORS = 9;
     //max amount of data that can me put in a message
-    final int MAXDATA = 6;
+    final int MAXDATA = 7;
     final int SCHEDULER_EPORT = 23;
     final int SCHEDULER_FPORT = 69;
     final int FLOOR_PORT = 28;
@@ -47,6 +47,7 @@ public class Communicator {
                 e.printStackTrace();
             }
         }
+
         me = user;
         received = new HashMap<>();
         received.put("Floor", 0);
@@ -59,12 +60,17 @@ public class Communicator {
         return received.get("Floor");
     }
     public Message rpc_send(Message m) {
-        //TODO timeout
         send(m);
         //successfully sent.
-        return receive();
+        return receive(3000);
     }
-    public Message receive() {
+    public Message receive(int timeout) {
+        //when the value 0 is placed timeout is infinite...
+        try {
+            sendReceiveSocket.setSoTimeout(timeout);
+        }catch(SocketException e) {
+            e.printStackTrace();
+        }
         //string represents who we received from
         String s;
         //setup data to receive (up to 100 bytes)
@@ -73,11 +79,11 @@ public class Communicator {
         try {
             System.out.println(me + " waiting...");
             sendReceiveSocket.receive(receivePacket);
-        } catch (IOException e) {
+        } catch (SocketTimeoutException e) {
             System.out.println("Receive timed out\n" + e);
+            return new Message(new String[] {"TimeOut"}, 10000, "Someone");
+        } catch (IOException e) {
             e.printStackTrace();
-            //"loop"
-            receive();
         }
 
         //now we find out who it's from

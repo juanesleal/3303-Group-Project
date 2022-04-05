@@ -42,6 +42,11 @@ public class ElevatorMovement {
 
 
     public void move(int dest) {
+        if (dest == prevFloor) {
+            System.out.println("already here");
+            arrive();
+            return;
+        }
         //check if we are already going there
         if (destination != dest) {
             //get our velocity
@@ -159,6 +164,7 @@ public class ElevatorMovement {
 
         //offset represents how many floor distances away from the previous floor
         double offset = distance / height;
+        System.out.println("computing floor, offset: " + offset + " prev:" + prevFloor + "Dest:" + destination);
         if (destination > prevFloor) {
             //we are going up.
             return prevFloor + offset;
@@ -169,12 +175,15 @@ public class ElevatorMovement {
     }
 
     public void arrive() {
-        prevFloor = destination;
+        //if we are already on the floor that we are going to, destination is never set.
+        if (destination != 0) {
+            prevFloor = destination;
+        }
+
         elevatorRef.arrive();
     }
 
     public double arriveWhen (int floor, double velocity) {
-        //TODO return 0 if fastest possible time
         //how far from the destination?
         double distance = Math.abs((floor - getFloor()) * height);
         System.out.println("dist: " + distance);
@@ -187,12 +196,12 @@ public class ElevatorMovement {
                 ti = (accelToMax) * 2;
                 //this is how long we are travelling at max velocity
                 ti += (distance - (distanceForMax * 2)) / maxVelocity;
-                System.out.println("arriveWhen: accelerating to max");
+                System.out.println("arriveWhen: accelerating to max, currently stationary");
             }else {
                 //we won't be able to go to max velocity
                 //accelerate for half the distance, decellerate for the other half.
                 ti = 2 * timeDistance(velocity, acceleration, 2000, distance/2);
-                System.out.println("arriveWhen: not accelerating to max");
+                System.out.println("arriveWhen: not accelerating to max, currently stationary");
             }
         }else if (velocity == maxVelocity || velocity == -maxVelocity) {
             //we are travelling somewhere at maxVelocity
@@ -201,17 +210,19 @@ public class ElevatorMovement {
             if (distance < distanceForMax) {
                 //not enough space to break, set time to an error value (2000)
                 ti = 2000;
+                System.out.println("arriveWhen: not enough breaking distance, currently maxVel");
             }else {
                 //we have space to break, but we might not want to break immediately: this calculates how long to travel distance - distanceForMax at maxVelocity
                 ti = timeDistance(maxVelocity, 0, 2000, (distance - distanceForMax));
                 ti += accelToMax;
+                System.out.println("arriveWhen: enough breaking distance, currently maxVel");
             }
         }else {
             //we are either accelerating or decellerating
             if (time.millis() > decelTime) {
                 //we are slowing down rn...
                 ti = timeDistance(velocity, -acceleration, 2000, distance);
-                System.out.println("Assuming that floor is current destination");
+                System.out.println("arriveWhen: currently decel");
             }else {
                 //accelerating...
                 //do we have breaking distance??
@@ -220,6 +231,7 @@ public class ElevatorMovement {
                     //how long till we start to decellerate?
                     ti = timeDistance(velocity, acceleration, 2000, (distance - breakingDist));
                     ti += timeDistance(velocity, -acceleration, 2000, breakingDist);
+                    System.out.println("arriveWhen: enough breaking distance, decel soon or already...");
                 }
             }
         }
