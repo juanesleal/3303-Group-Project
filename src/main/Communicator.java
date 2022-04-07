@@ -19,6 +19,7 @@ public class Communicator {
     final int SCHEDULER_EPORT = 23;
     final int SCHEDULER_FPORT = 69;
     final int FLOOR_PORT = 28;
+	final int OUTPUT_PORT = 35;
     //TODO use these constants, ELEVATORBYTE MUST be different then FLOOR and SCHEDULER[0]
     final byte[] SCHEDULER_BYTE = {0,1};
     final byte[] FLOOR_BYTE = {0,2};
