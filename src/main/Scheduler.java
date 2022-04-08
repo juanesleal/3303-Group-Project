@@ -124,7 +124,7 @@ public class Scheduler {
         }
 
     }
-    this note causes an error, it's important... the next thing i need to do is get the elevators to not accept requests to go weird floors while they are travelling while full...
+    //this note causes an error, it's important... the next thing i need to do is get the elevators to not accept requests to go weird floors while they are travelling while full...
     enum State {
         INIT, EVENTWAIT, ELEVWAIT, GETDATA, SCHEDULING;
     }
@@ -189,7 +189,7 @@ public class Scheduler {
         //waiting for elevator
         if (m.getData()[0].equals("Availible")) {
             //this may be confusing, but basically check if we have set all the timeTillRequests, and that the current one isn't the same sender as the previous
-            System.out.println(next + "  " + timeTillRequest.length + " " + Character.getNumericValue(m.getToFrom().charAt(8)));
+            System.out.println("Received Availible");
             timeTillRequest[Character.getNumericValue(m.getToFrom().charAt(8))] = "avail";
             if (next == (timeTillRequest.length - 1)) {
                 //Scheduler needs this at 1
@@ -200,6 +200,7 @@ public class Scheduler {
             }else {
                 next++;
             }
+            System.out.println("Sending OK");
             inMethod = false;
             notifyAll();
             return new Message(new String[]{"OK"}, time.millis(), m.getToFrom());
@@ -237,6 +238,7 @@ public class Scheduler {
 
             //ask for the time for desired request sent to the elevators in order
             m = eCommunicator.rpc_send(new Message(new String[] {"timeFor", timeTillRequest[0].charAt(0) + ""}, time.millis(),  "Elevator" + next));
+            System.out.println("Received a TimeFor response: " + m.getData()[0]);
             //message received
             if (m.getData()[0].equals("0.0")) {
                 //Elevator sends time = 0 whenever they have the fastest possible time, immediately send them.
@@ -259,13 +261,27 @@ public class Scheduler {
                                 currentState = null;
                                 return;
                             }
-                            eCommunicator.send(m);
+                            //they'll send a reply, we should wait
+                            eCommunicator.rpc_send(m);
                             scheduling = false;
                             taskDone();
                         }
                     };
-                    //schedule a timer with a default 5 seconds (minimum time estimate)
-                    timer.schedule(checkArrive, 10);
+                    if (m.getData().length > 1) {
+                        if (m.getData()[1].equals("Already Here")) {
+                            //schedule a timer with avery short delay, since the elevator is likely already there...
+                            timer.schedule(checkArrive, 100);
+                        }else {
+                            //weird
+                            System.out.println("Elevator at 0 seconds sent something weird============ " + m.getData()[1]);
+                            //it may be going to the next floor, wait a default 5 seconds
+                            timer.schedule(checkArrive, 5000);
+                        }
+                    }else {
+                        //it may be going to the next floor, wait a default 5 seconds
+                        timer.schedule(checkArrive, 5000);
+                    }
+
                     //check for a new Event...
                     currentState = State.EVENTWAIT;
                     //reset next
@@ -274,28 +290,58 @@ public class Scheduler {
                     notifyAll();
                     return;
                 }
-            }else {
-                if (Character.getNumericValue(m.getToFrom().charAt(8)) == next) {
-                    timeTillRequest[next] = m.getData()[0];
-                }else {
-                    eCommunicator.send(new Message(new String[]{"BadRequest"}, time.millis(), m.getToFrom()));
+            }else if (!m.getData()[0].equals("NotAvailible")){
+                boolean isDouble = false;
+                while (!isDouble) {
+                    try {
+                        Double.parseDouble(m.getData()[0]);
+                        isDouble = true;
+                    } catch (NumberFormatException e) {
+                        //this means we received something completely unexpected
+                        m = eCommunicator.receive(100);
+                    }
                 }
+                while (Character.getNumericValue(m.getToFrom().charAt(8)) != next) {
+                    m = eCommunicator.rpc_send(new Message(new String[] {"timeFor", timeTillRequest[0].charAt(0) + ""}, time.millis(),  "Elevator" + next));
+                    System.out.println("Received a TimeFor response: " + m.getData()[0]);
+                }
+                timeTillRequest[next] = m.getData()[0];
 
+            }else {
+                //make timetill huge so it doesn't get picked
+                timeTillRequest[next] = "2000";
             }
             next++;
         }
 
+
         //got all the Elevator times, nobody was min time. s.next must be > the last elevator id
         int min = 1;
+        int countChecked = 0;
         for (int i = 1; i < next; i++) {
             if (Double.parseDouble(timeTillRequest[i]) < Double.parseDouble(timeTillRequest[min])) {
                 //current time is less then the existing minimum time
                 min = i;
             }
+            if (timeTillRequest[i].equals("2000")) {
+                countChecked ++;
+            }
+        }
+        System.out.println("Elevators that aren't availible: " + countChecked);
+        if (countChecked == timeTillRequest.length - 1) {
+            //every Elevator has been asked
+            //check for a new Event (previous will stay in the queue)
+            currentState = State.EVENTWAIT;
+            //reset next
+            next = 1;
+            inMethod = false;
+            notifyAll();
+            return;
         }
 
         //send a goTo to the minimum elevator
         m = eCommunicator.rpc_send(new Message(new String[]{"goTo", timeTillRequest[0].substring(0, 3), timeTillRequest[0].substring(3)}, time.millis(), "Elevator" + min));
+        System.out.println("Received a GoTo response: " + m.getData()[0]);
         while(!m.getData()[0].equals("OK")) {
             //note this is destructive, we wish to look for a new Minimum
             timeTillRequest[min] = "2000";
@@ -306,38 +352,47 @@ public class Scheduler {
                     //current time is less then the existing minimum time
                     min = i;
                 }
+
             }
+
             //min recalculated...
             //send a goTo to the minimum elevator
             m = eCommunicator.rpc_send(new Message(new String[]{"goTo", timeTillRequest[0].substring(0, 3), timeTillRequest[0].substring(3)}, time.millis(), "Elevator" + min));
+            System.out.println("Received a GoTo response: " + m.getData()[0]);
         }
         //elevator sent, update timeTillRequest
         timeTillRequest[0] += " Ordered";
         if (m.getData()[1] != null) {
             //do not set a new timer if the elevator is already set to go there.
-            if (!m.getData()[1].equals("Already Going")) {
-                checkArrive = new TimerTask() {
-                    @Override
-                    public void run() {
-                        System.out.println("==========Elevator scheduled for first arrival=============");
-                        scheduling = true;
-                        //reset the timeTillRequest, not sure what that is rn...
-                        Message m = Scheduling();
-                        if (m.getData()[0].equals("SHUTDOWN")) {
-                            System.out.println("System Shutdown");
-                            currentState = null;
-                            return;
-                        }
-                        eCommunicator.send(m);
-                        scheduling = false;
-                        taskDone();
-                    }
-                };
-                //schedule a timer for the amount of time it will take them to get there.
-                int time = (int) ((1000) * Math.floor(Double.parseDouble(timeTillRequest[min])));
-                System.out.println("seting timer to go off in time: " + time);
-                timer.schedule(checkArrive, time);
+            if (m.getData()[1].equals("Already Going")) {
+                //don't set a timer, they have one
+            }else {
+                System.out.println("ERROR==============================GETDATA");
             }
+        }else {
+            System.out.println("Scheduling timer for " + ((1000) * Math.floor(Double.parseDouble(timeTillRequest[min]))) + " milliseconds===============================");
+            checkArrive = new TimerTask() {
+                @Override
+                public void run() {
+                    System.out.println("==========Elevator scheduled for first arrival non 0=============");
+                    scheduling = true;
+                    //reset the timeTillRequest, not sure what that is rn...
+                    Message m = Scheduling();
+                    if (m.getData()[0].equals("SHUTDOWN")) {
+                        System.out.println("System Shutdown");
+                        currentState = null;
+                        return;
+                    }
+                    //they'll send a reply, we should wait
+                    eCommunicator.rpc_send(m);
+                    scheduling = false;
+                    taskDone();
+                }
+            };
+            //schedule a timer for the amount of time it will take them to get there.
+            int time = (int) ((1000) * Math.floor(Double.parseDouble(timeTillRequest[min])));
+            System.out.println("seting timer to go off in time: " + time);
+            timer.schedule(checkArrive, time);
         }
         //check for a new Event...
         currentState = State.EVENTWAIT;
@@ -358,7 +413,8 @@ public class Scheduler {
         }
         System.out.println("Scheduling " + currentState);
         //wait only 1 second longer
-        Message m = eCommunicator.receive(1000);
+        Message m = eCommunicator.receive(2000);
+        System.out.println("Received a Maybe Arrived: " + m.getData()[0]);
         if (m.getData()[0] .equals("TimeOut")) {
             //shutdown
             System.out.println("Scheduling Timed out");
@@ -417,7 +473,8 @@ public class Scheduler {
                                                 currentState = null;
                                                 return;
                                             }
-                                            eCommunicator.send(m);
+                                            //they'll send a reply, we should wait
+                                            eCommunicator.rpc_send(m);
                                             scheduling = false;
                                             taskDone();
                                         }
@@ -427,6 +484,7 @@ public class Scheduler {
                                     while (tryAgain) {
                                         m = eCommunicator.rpc_send(new Message(new String[]{"timeFor", msg.getData()[4]}, time.millis(), m.getToFrom()));
                                         try {
+                                            System.out.println("Scheduling timer for " + ((1000) * Math.floor(Double.parseDouble(m.getData()[0]))) + " milliseconds===============================");
                                             timer.schedule(checkArrive, (int) ((1000) * Math.floor(Double.parseDouble(m.getData()[0]))));
                                             tryAgain = false;
                                         } catch (NumberFormatException e) {

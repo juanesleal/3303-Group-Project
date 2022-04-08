@@ -78,7 +78,11 @@ class IdleState extends ElevatorState {
         addDest.addFirst(floor);
         super.elevatorRef.setQueue(addDest);
         super.elevatorRef.setFloorOk(true);
-        super.elevatorRef.reply(new String[]{"OK"}, "Scheduler");
+        if (floor == super.elevatorRef.geteM().getFloor()) {
+            super.elevatorRef.reply(new String[]{"OK", "Already Here"}, "Scheduler");
+        }else {
+            super.elevatorRef.reply(new String[]{"OK"}, "Scheduler");
+        }
         super.elevatorRef.next("Empty");
         return true;
     }
@@ -185,13 +189,13 @@ class WaitPassEntryState extends ElevatorState {
         int button = Integer.parseInt(s[1]);
         //we've got a botton request, pass to Scheduler
         System.out.println("button press: " + s[1]);
-        s = super.elevatorRef.send(new String[]{"ButtonPress", super.elevatorRef.getRequestTime(), "" + s[1]}, "Scheduler");
+        s = super.elevatorRef.send(new String[]{"ButtonPress", super.elevatorRef.getRequestTime(), "" + button}, "Scheduler");
 
         //check OK
 
         while (!s[0].equals("OK")) {
             //sending availible till we get a proper response
-            s = super.elevatorRef.send(new String[]{"ButtonPress", super.elevatorRef.getRequestTime(),"" + s[1].charAt(4)}, "Scheduler");
+            s = super.elevatorRef.send(new String[]{"ButtonPress", super.elevatorRef.getRequestTime(),"" + button}, "Scheduler");
         }
 
 
@@ -244,7 +248,7 @@ class FullTState extends ElevatorState {
         String msg = ""  + super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity());
         if (super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity()) == 2000) {
             //2000 is an error it means we can't get to the given floor
-            super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
+            super.elevatorRef.reply(new String[]{"NotAvailible"}, "Scheduler");
         }else {
             super.elevatorRef.reply(new String[]{msg}, "Scheduler");
         }
@@ -256,6 +260,7 @@ class FullTState extends ElevatorState {
             //we are already going where we were told to go...
             super.elevatorRef.setFloorOk(true);
             super.elevatorRef.reply(new String[]{"OK", "Already Going"}, "Scheduler");
+            return true;
         }
         if (super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity()) == 2000) {
             //2000 is an error it means we can't get to the given floor
