@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.time.Clock;
 import java.util.LinkedList;
 
-public class Floor {
+public class Floor implements Runnable{
 
     private Communicator floorCommunicator;
     private LinkedList<String[]> messages = new LinkedList<>();
@@ -21,28 +21,27 @@ public class Floor {
         floorCommunicator = new Communicator(com.FLOOR_PORT, "Floor");
     }
 
-    public static void main(String[] args) {
+
+    @Override
+    public void run() {
         Clock time = Clock.systemDefaultZone();
-        Floor f = new Floor();
-        f.readAndSort();
+        readAndSort();
         while (true) {
-            Message m = f.floorCommunicator.receive(0);
+            Message m = floorCommunicator.receive(0);
             if (m.getData()[0].equals("EventReq")) {
                 //scheduler wants next event, we've already sorted the events...
-                f.floorCommunicator.send(new Message(f.messages.get(f.nextFloorReq), time.millis(), m.getToFrom()));
-                f.nextFloorReq++;
+                floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
+                nextFloorReq++;
             }
             if (m.getData()[0].equals("ButtonReq")) {
                 boolean ok = false;
                 //figure out which floor it's for...
-                for (String[] s : f.messages) {
-                    if (m.getData()[1].equals(s[1])) {
-                        f.floorCommunicator.send(new Message(new String[]{"OK", s[4]}, time.millis(), m.getToFrom()));
+                for (String[] s :messages) {
+                    if (m.getData()[1].equals(s[1])) { floorCommunicator.send(new Message(new String[]{"OK", s[4]}, time.millis(), m.getToFrom()));
                         ok = true;
                     }
                 }
-                if (!ok) {
-                    f.floorCommunicator.send(new Message(new String[]{"Request Not Availible"}, time.millis(), m.getToFrom()));
+                if (!ok) { floorCommunicator.send(new Message(new String[]{"Request Not Availible"}, time.millis(), m.getToFrom()));
                 }
             }
         }
@@ -50,6 +49,12 @@ public class Floor {
 
         //System.out.println("== Floor Subsystem finished");
     }
+
+    public static void main(String[] args) {
+        Floor f = new Floor();
+        f.run();
+    }
+
     private void readAndSort() {
         try {
             //    Read floor data values from file
@@ -97,4 +102,5 @@ public class Floor {
             System.err.println(e.getMessage());
         }
     }
+
 }

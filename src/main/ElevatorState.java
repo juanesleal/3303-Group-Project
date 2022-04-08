@@ -140,7 +140,10 @@ class EmptyTState extends ElevatorState {
         //always arrive at the top of the q
         q.removeFirst();
         super.elevatorRef.setQueue(q);
-        super.elevatorRef.reply(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+        String[] s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+        while (!s[0].equals("OK")) {
+            s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+        }
         //Change states.
         super.elevatorRef.next("WaitEntry");
     }
@@ -174,11 +177,15 @@ class WaitPassEntryState extends ElevatorState {
             //doors stuck shut, tell Scheduler we have no button press
             String[] s = super.elevatorRef.send(new String[]{"NoButtonPress", super.elevatorRef.getRequestTime()}, "Scheduler");
             //check OK
-            while (!s[0].equals("SHUTDOWN")) {
+            if (s[0].equals("SHUTDOWN")) {
+                super.elevatorRef.setShutdown(true);
+                return;
+            }
+            while (!s[0].equals("OpenDoors")) {
                 //sending availible till we get a proper response
                 s = super.elevatorRef.send(new String[]{"NoButtonPress", super.elevatorRef.getRequestTime()}, "Scheduler");
             }
-            return; //since there's been no button request'
+            super.elevatorRef.setDoorsOpen(true);
         }
         String[] s = super.elevatorRef.send(new String[]{"ButtonReq", super.elevatorRef.getRequestTime()}, "Floor");
         //check that we got a reply
@@ -304,7 +311,18 @@ class FullTState extends ElevatorState {
         //always arrive at the top of the q
         q.removeFirst();
         super.elevatorRef.setQueue(q);
-        super.elevatorRef.reply(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+        System.out.println("sending Arrived");
+        String[] s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+        //after attempts, we give up...
+        int attempts = 0;
+        while (!(s[0].equals("OK")) && attempts < 3) {
+            attempts++;
+            System.out.println("arrive received: " + s[0]);
+            s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+        }
+        if (attempts == 3) {
+            super.elevatorRef.setShutdown(true);
+        }
         //wait for pass to exit
         super.elevatorRef.next("WaitExit");
     }

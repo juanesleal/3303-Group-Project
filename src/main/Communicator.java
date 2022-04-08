@@ -63,7 +63,7 @@ public class Communicator {
     public Message rpc_send(Message m) {
         send(m);
         //successfully sent.
-        return receive(3000);
+        return receive(5000);
     }
     public Message receive(int timeout) {
         //when the value 0 is placed timeout is infinite...

@@ -100,7 +100,7 @@ public class ElevatorMovement {
                     }
                 }
             };
-            timer.schedule(checkArrive, (int) Math.floor(1000));
+            timer.schedule(checkArrive, (int) Math.floor(1000 * timeTo));
             System.out.println("move complete: cur: " + current + "  a: " + (current - accelTime) + " d: " + (decelTime) + " vel: " + velForDest + " dest: " + destination  + "timeTO: "+ timeTo);
         }
     }
