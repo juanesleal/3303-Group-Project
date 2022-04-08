@@ -17,7 +17,7 @@ public class Output {
 			System.out.println("The output is being sent");
 			Message m = o.dCommunicator.receive(0);
 			System.out.println("Output message is:" + m);
-			
+
 			if (m.getData()[0].length() > 22 && m.getData()[0].substring(0, 23).equals ("Scheduler sent Elevator") || m.getData()[0].substring(10, 20).equals ("Arrived at") ) {
 				floorReqs[next++] = m.getData()[0] + ":::::" + m.getTime();
 			}
