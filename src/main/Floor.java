@@ -118,7 +118,8 @@ public class Floor implements Runnable{
                 //scheduler wants next event, we've already sorted the events...
                 floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
                 nextFloorReq++;
-            }else if (time.millis() - lastEventTime >= 10000) {
+            }else if ((time.millis() - lastEventTime) >= 10000) {
+                lastEventTime = time.millis();
                 //it's been more then 10 seconds since we sent the last event'
                 //scheduler wants next event, we've already sorted the events...
                 floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));

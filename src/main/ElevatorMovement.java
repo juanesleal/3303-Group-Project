@@ -267,7 +267,7 @@ public class ElevatorMovement {
         if (time == 2000) {
             //they want us to solve for time.
             //this is a quadratic equation...
-            double determ = Math.sqrt(Math.pow(velocity, 2) - ((4 * (acceleration) / 2) * (0 - distance)));
+            double determ = Math.sqrt(Math.abs(Math.pow(velocity, 2) - ((4 * (acceleration) / 2) * (0 - distance))));
             double soln = (0 - velocity) + determ;
             if (soln < 0 && acceleration > 0) {
                 //wrong soln, get the other

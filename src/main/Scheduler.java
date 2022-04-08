@@ -28,6 +28,7 @@ package main;
  *      loop
  */
 
+import java.nio.file.StandardWatchEventKinds;
 import java.time.Clock;
 import java.util.LinkedList;
 import java.util.Timer;
@@ -273,7 +274,7 @@ public class Scheduler implements Runnable {
                                 //    return;
                                 //}
                                 //they'll send a reply, we should wait
-                                eCommunicator.rpc_send(m);
+                                eCommunicator.rpc_send(m, 1000);
                                 scheduling = false;
                                 inMethod = false;
                                 taskDone();
@@ -410,7 +411,7 @@ public class Scheduler implements Runnable {
                         //    return;
                         //}
                         //they'll send a reply, we should wait
-                        eCommunicator.rpc_send(m);
+                        eCommunicator.rpc_send(m, 1000);
                         scheduling = false;
                         inMethod = false;
                         taskDone();
@@ -441,6 +442,7 @@ public class Scheduler implements Runnable {
         }
         inMethod = true;
         System.out.println("Scheduling Elevator: " + elevator + "  " + currentState);
+        eCommunicator.send(new Message(new String[] {"Scheduler sent Elevator " + elevator + " trying to receive elevator's arrive signal"}, time.millis(), "Output"));
         //wait 4 seconds longer
         Message m = eCommunicator.receive(4000);
         System.out.println("Received a Maybe Arrived: " + m.getData()[0]);
@@ -564,11 +566,11 @@ public class Scheduler implements Runnable {
                                 //    return;
                                 //}
                                 //they'll send a reply, we should wait
-                                eCommunicator.rpc_send(m);
+                                eCommunicator.rpc_send(m, 1000);
                                 scheduling = false;
                                 inMethod = false;
                                 taskDone();
-                            }
+                            }make it a fucking rpc send youn fucking StandardWatchEventKinds
                         }
                     };
                     //set a timer to execute when this is scheduled to arrive at the next location...

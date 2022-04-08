@@ -29,6 +29,7 @@ public class Elevator implements Runnable{
     private String requestTime;
     private boolean shutdown = false;
     private boolean arrived = false;
+    public boolean inMain = false;
     public int elevNum;
 
     Clock time = Clock.systemDefaultZone();
@@ -49,10 +50,11 @@ public class Elevator implements Runnable{
         while (!shutdown) {
             entry();
             if (!arrived) {
+                inMain = true;
                 //receive a message
                 Message m = communicator.receive(0);
                 System.out.println("state: " + currentState);
-                System.out.println(m.getData()[0]);
+                System.out.println("main data received: " + m.getData()[0]);
                 if (m.getData()[0].equals("timeFor")) {
                     timeFor(Integer.parseInt(m.getData()[1]));
                 } else if (m.getData()[0].equals("goTo") && !(m.getData()[2].equals("notNecessary"))) {
@@ -73,6 +75,8 @@ public class Elevator implements Runnable{
                     shutdown = true;
                     System.out.println("Elevator SHUTDOWN");
                 }
+                inMain = false;
+                notif();
             } else {
                 //we already did all the work when the arrive func was called.
                 arrived = false;
@@ -159,8 +163,19 @@ public class Elevator implements Runnable{
         return states[currentState].goTo(floor);
     }
 
-    public void arrive() {
+    public synchronized void notif() {
+        notifyAll();
+    }
+
+    public synchronized void arrive() {
         arrived = true;
+        while(inMain) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         states[currentState].arrive();
     }
 
