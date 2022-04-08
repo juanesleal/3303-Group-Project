@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
+<<<<<<< Updated upstream
     <list default="true" id="d01e2e36-47bd-41fb-ae76-0df9006cd414" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Communicator.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Communicator.class" afterDir="false" />
@@ -23,6 +24,10 @@
       <change beforePath="$PROJECT_DIR$/src/main/Floor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Floor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/Output.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Output.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/Scheduler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Scheduler.java" afterDir="false" />
+=======
+    <list default="true" id="3af67ff8-0988-4255-ba40-a6521a78277f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+>>>>>>> Stashed changes
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,14 +46,23 @@
   </component>
   <component name="ProjectId" id="26w86qOHpbVxL6TXHgeLSE05DIr" />
   <component name="ProjectViewState">
+<<<<<<< Updated upstream
     <option name="flattenPackages" value="true" />
     <option name="showExcludedFiles" value="true" />
+=======
+    <option name="hideEmptyMiddlePackages" value="true" />
+>>>>>>> Stashed changes
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+<<<<<<< Updated upstream
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../../COMP3004/Project" />
+=======
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+>>>>>>> Stashed changes
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -163,6 +177,7 @@
       </list>
     </option>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
