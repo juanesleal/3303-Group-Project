@@ -12,16 +12,9 @@ import java.util.concurrent.TimeUnit;
 public class Floor implements Runnable{
 
     private Communicator floorCommunicator;
-    private Communicator outputCommunicator;
     private LinkedList<String[]> messages = new LinkedList<>();
     private int nextFloorReq = 0;
-    
-    private DatagramPacket sendPacket;
-	private DatagramSocket socket;
-	private ByteArrayOutputStream buildPacket;
-	private String mode = "netASCII";
-	private String filename = "test.txt";
-	private InetAddress localHostVar;
+    private long lastEventTime = Integer.MAX_VALUE;
 
 
     /**
@@ -31,7 +24,6 @@ public class Floor implements Runnable{
     public Floor() {
         Communicator com = new Communicator();
         floorCommunicator = new Communicator(com.FLOOR_PORT, "Floor");
-        outputCommunicator = new Communicator(com.OUTPUT_PORT, "Output");
     }
 
 
@@ -104,7 +96,7 @@ public class Floor implements Runnable{
     private void floorMessageCheck (){
         Clock time = Clock.systemDefaultZone();
 
-        Message m = floorCommunicator.receive(0);
+        Message m = floorCommunicator.receive(2000);
 
         if (m.getData()[0].equals("ButtonReq")) {
             boolean ok = false;
@@ -121,22 +113,17 @@ public class Floor implements Runnable{
         }
 
         if (m.getData()[0].equals("EventReq")) {
-            //scheduler wants next event, we've already sorted the events...
-            floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
-            nextFloorReq++;
-            try {
-                TimeUnit.SECONDS.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (lastEventTime == Integer.MAX_VALUE) {
+                lastEventTime = time.millis();
+                //scheduler wants next event, we've already sorted the events...
+                floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
+                nextFloorReq++;
+            }else if (time.millis() - lastEventTime >= 10000) {
+                //it's been more then 10 seconds since we sent the last event'
+                //scheduler wants next event, we've already sorted the events...
+                floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
+                nextFloorReq++;
             }
-        } else {
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            floorMessageCheck();
         }
 
 

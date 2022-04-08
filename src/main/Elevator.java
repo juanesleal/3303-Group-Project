@@ -29,12 +29,14 @@ public class Elevator implements Runnable{
     private String requestTime;
     private boolean shutdown = false;
     private boolean arrived = false;
+    public int elevNum;
 
     Clock time = Clock.systemDefaultZone();
 
 
 
     public Elevator(int i) {
+        elevNum = i;
         eM.prevFloor = i;
         communicator = new Communicator(0, "Elevator" + i);
     }
@@ -116,6 +118,13 @@ public class Elevator implements Runnable{
     public String[] send(String[] msg, String to) {
         System.out.println("Sending from Elevator");
         Message m = communicator.rpc_send(new Message(msg, time.millis(), to));
+        System.out.println("Receiving from "  + m.getToFrom());
+        return m.getData();
+    }
+
+    public String[] send(String[] msg, String to, int timeout) {
+        System.out.println("Sending from Elevator");
+        Message m = communicator.rpc_send(new Message(msg, time.millis(), to), timeout);
         System.out.println("Receiving from "  + m.getToFrom());
         return m.getData();
     }

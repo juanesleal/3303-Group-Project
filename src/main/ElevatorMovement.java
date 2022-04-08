@@ -167,9 +167,11 @@ public class ElevatorMovement {
         System.out.println("computing floor, offset: " + offset + " prev:" + prevFloor + "Dest:" + destination);
         if (destination > prevFloor) {
             //we are going up.
+            elevatorRef.reply(new String[] {"Elevator " + elevatorRef.elevNum + " is currently " + distance + "m above floor " + prevFloor}, "Output");
             return prevFloor + offset;
         }else {
             //going down.
+            elevatorRef.reply(new String[] {"Elevator " + elevatorRef.elevNum + " is currently " + distance + "m below floor " + prevFloor}, "Output");
             return prevFloor - offset;
         }
     }

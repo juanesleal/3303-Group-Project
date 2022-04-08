@@ -23,6 +23,7 @@ public class Communicator {
     //TODO use these constants, ELEVATORBYTE MUST be different then FLOOR and SCHEDULER[0]
     final byte[] SCHEDULER_BYTE = {0,1};
     final byte[] FLOOR_BYTE = {0,2};
+    final byte[] OUTPUT_BYTE = {0,3};
     final byte ELEVATOR_BYTE = 1;
 
     DatagramPacket sendPacket, receivePacket;
@@ -63,7 +64,12 @@ public class Communicator {
     public Message rpc_send(Message m) {
         send(m);
         //successfully sent.
-        return receive(5000);
+        return receive(0);
+    }
+    public Message rpc_send(Message m, int timeout) {
+        send(m);
+        //successfully sent.
+        return receive(timeout);
     }
     public Message receive(int timeout) {
         //when the value 0 is placed timeout is infinite...
@@ -151,6 +157,8 @@ public class Communicator {
                 //sending to floor
                 sendPort = FLOOR_PORT;
             }
+        }else if (request[request.length - 1] == OUTPUT_BYTE[1] && request[request.length - 2] == OUTPUT_BYTE[0]) {
+            sendPort = OUTPUT_PORT;
         } else if (request[request.length - 2] == ELEVATOR_BYTE && !(me.substring(0, (me.length() - 1)).equals("Elevator"))) {
             sendPort = received.get("Elevator" + request[request.length - 1]);
         }
@@ -231,6 +239,8 @@ public class Communicator {
                 bb.put(FLOOR_BYTE);
             }else if (m.getToFrom().equals("Scheduler")){
                 bb.put(SCHEDULER_BYTE);
+            }else if (m.getToFrom().equals("Output")){
+                bb.put(OUTPUT_BYTE);
             }
             //write to length so it isn't 100 bytes long.
             byte[] bytes = new byte[bb.position()];

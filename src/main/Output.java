@@ -5,12 +5,11 @@ public class Output {
 	Communicator com = new Communicator();
 	
 	private Communicator cCommunicator;
-    private Communicator dCommunicator = new Communicator(com.OUTPUT_PORT, "output");
+    private Communicator dCommunicator = new Communicator(com.OUTPUT_PORT, "Output");
 
-    static void main(String[] args) {
+    public static void main(String[] args) {
+		Output o = new Output();
 		while(true) {
-
-			Output o = new Output();
 
 			System.out.println("The output is being sent");
 

@@ -79,6 +79,7 @@ public class Scheduler implements Runnable {
                         currentState = next();
                         //don't break, we've received a message so we may as well hear it out.
                     case ELEVWAIT:
+                        eCommunicator.send(new Message(new String[] {"Scheduler is waiting on elevators"}, time.millis(), "Output"));
                         inMethod = true;
                         if (timeTillRequest[1] == null) {
                             //basically means we are a first time run.
@@ -97,8 +98,9 @@ public class Scheduler implements Runnable {
                         }
                         break;
                     case EVENTWAIT:
+                        eCommunicator.send(new Message(new String[] {"Scheduler is waiting on next Event"}, time.millis(), "Output"));
                         inMethod = true;
-                        Message m = fCommunicator.rpc_send(new Message(new String[]{"EventReq"}, time.millis(), "Floor"));
+                        Message m = fCommunicator.rpc_send(new Message(new String[]{"EventReq"}, time.millis(), "Floor"), 2000);
                         EventWait(m);
                         break;
                     //TODO for testing you may want to have JUNIt open a UDP socket same thing with GUI,
@@ -251,6 +253,7 @@ public class Scheduler implements Runnable {
                 timeTillRequest[next] = m.getData()[0];
                 m = eCommunicator.rpc_send(new Message(new String[]{"goTo", timeTillRequest[0].substring(0, 3), timeTillRequest[0].substring(3)}, time.millis(), "Elevator" + next));
                 if (m.getData()[0].equals("OK")) {
+                    eCommunicator.send(new Message(new String[] {"Scheduler sent Elevator " + next + " to go to floor " + timeTillRequest[0].substring(0, 3)}, time.millis(), "Output"));
                     System.out.println("got OKr");
                     //awesome, set timer, do stuff..
                     //elevator sent, update timeTillRequest
@@ -264,11 +267,11 @@ public class Scheduler implements Runnable {
                                 scheduling = true;
                                 //reset the timeTillRequest, not sure what that is rn...
                                 Message m = Scheduling(elevNo);
-                                if (m.getData()[0].equals("SHUTDOWN")) {
-                                    System.out.println("System Shutdown");
-                                    currentState = null;
-                                    return;
-                                }
+                                //if (m.getData()[0].equals("SHUTDOWN")) {
+                                //    System.out.println("System Shutdown");
+                                //    currentState = null;
+                                //    return;
+                                //}
                                 //they'll send a reply, we should wait
                                 eCommunicator.rpc_send(m);
                                 scheduling = false;
@@ -380,6 +383,7 @@ public class Scheduler implements Runnable {
             m = eCommunicator.rpc_send(new Message(new String[]{"goTo", timeTillRequest[0].substring(0, 3), timeTillRequest[0].substring(3)}, time.millis(), "Elevator" + min));
             System.out.println("Received a GoTo response: " + m.getData()[0]);
         }
+        eCommunicator.send(new Message(new String[] {"Scheduler sent Elevator " + min + " to go to floor " + timeTillRequest[0].substring(0, 3)}, time.millis(), "Output"));
         //elevator sent, update timeTillRequest
         timeTillRequest[0] += " Ordered";
         if (m.getData()[1] != null) {
@@ -400,11 +404,11 @@ public class Scheduler implements Runnable {
                         scheduling = true;
                         //reset the timeTillRequest, not sure what that is rn...
                         Message m = Scheduling(finalMin);
-                        if (m.getData()[0].equals("SHUTDOWN")) {
-                            System.out.println("System Shutdown");
-                            currentState = null;
-                            return;
-                        }
+                        //if (m.getData()[0].equals("SHUTDOWN")) {
+                        //    System.out.println("System Shutdown");
+                        //    currentState = null;
+                        //    return;
+                        //}
                         //they'll send a reply, we should wait
                         eCommunicator.rpc_send(m);
                         scheduling = false;
@@ -437,8 +441,8 @@ public class Scheduler implements Runnable {
         }
         inMethod = true;
         System.out.println("Scheduling Elevator: " + elevator + "  " + currentState);
-        //wait only 1 second longer
-        Message m = eCommunicator.receive(2000);
+        //wait 4 seconds longer
+        Message m = eCommunicator.receive(4000);
         System.out.println("Received a Maybe Arrived: " + m.getData()[0]);
 
         while (!m.getData()[0].equals("Arrived") || !m.getToFrom().equals("Elevator" + elevator)) {
@@ -473,22 +477,29 @@ public class Scheduler implements Runnable {
             if (secArrive || ((int) Double.parseDouble(m.getData()[1]) == Integer.parseInt(msg.getData()[2]))) {
                 //they've arrived alright...
                 eCommunicator.send(new Message(new String[] {"OK"}, time.millis(), m.getToFrom()));
+                eCommunicator.send(new Message(new String[] {m.getToFrom() + " arrived at " + m.getData()[1]}, time.millis(), "Output"));
                 //check for buttonPress and handle...
-                //only wait 5 seconds
-                m = eCommunicator.receive(5000);
+                //only wait 10 seconds
+                m = eCommunicator.receive(10000);
                 while (!m.getData()[0].equals("ButtonPress") || !m.getToFrom().equals("Elevator" + elevator)) {
                     if (m.getData()[0] .equals("TimeOut")) {
+                        eCommunicator.send(new Message(new String[] {m.getToFrom() + " has it's doors stuck closed"}, time.millis(), "Output"));
                         //gracefully handling, tell them to open the door lol
-                        m = eCommunicator.rpc_send(new Message(new String[] {"OpenDoor"}, time.millis(),"Elevator" + elevator));
+                        m = eCommunicator.rpc_send(new Message(new String[] {"OpenDoor"}, time.millis(),"Elevator" + elevator), 3000);
+                        if (m.getData()[0].equals("ButtonPress") && m.getToFrom().equals("Elevator" + elevator)) {
+                            //hurrrayyy
+                            break;
+                        }
                         while (!m.getData()[0].equals("OK") || !m.getToFrom().equals("Elevator" + elevator)) {
                             if (m.getData()[0] .equals("TimeOut")) {
                                 //give up on them...
                                 System.out.println("Elevator TimeOut");
                                 //send a new elevator
                                 currentState = State.GETDATA;
+                                eCommunicator.send(new Message(new String[] {m.getToFrom() + " refuses to open it's doors, shutting it down..."}, time.millis(), "Output"));
                                 return new Message(new String[] {"SHUTDOWN"}, time.millis(), ("Elevator" + elevator));
                             }
-                            m = eCommunicator.rpc_send(new Message(new String[] {"OpenDoor"}, time.millis(),"Elevator" + elevator));
+                            m = eCommunicator.rpc_send(new Message(new String[] {"OpenDoor"}, time.millis(),"Elevator" + elevator), 3000);
                         }
                     }
                     //setting a shorter timeout...
@@ -498,7 +509,7 @@ public class Scheduler implements Runnable {
                 String request = m.getData()[2];
                 //check that their doors have closed...
                 eCommunicator.send(new Message(new String[]{"OK"}, time.millis(), m.getToFrom()));
-                m = eCommunicator.rpc_send(new Message(new String[]{"DoorStatus"}, time.millis(), m.getToFrom()));
+                m = eCommunicator.rpc_send(new Message(new String[]{"DoorStatus"}, time.millis(), m.getToFrom()), 3000);
 
                 while (!m.getData()[0].equals("Status") || (m.getData().length > 1 && !m.getData()[1].equals("Closed")) || !m.getToFrom().equals("Elevator" + elevator)) {
                     if (m.getData()[0] .equals("TimeOut")) {
@@ -506,6 +517,7 @@ public class Scheduler implements Runnable {
                         System.out.println("Elevator TimeOut");
                         //send a new elevator
                         currentState = State.GETDATA;
+                        eCommunicator.send(new Message(new String[] {m.getToFrom() + " is unresponsive, shutting down..."}, time.millis(), "Output"));
                         return new Message(new String[] {"SHUTDOWN"}, time.millis(), ("Elevator" + elevator));
                     }
                     if (m.getData().length > 1 && !m.getData()[1].equals("Open")) {
@@ -516,6 +528,7 @@ public class Scheduler implements Runnable {
                                 System.out.println("Elevator TimeOut");
                                 //send a new elevator
                                 currentState = State.GETDATA;
+                                eCommunicator.send(new Message(new String[] {m.getToFrom() + " refuses to close it's doors..."}, time.millis(), "Output"));
                                 return new Message(new String[] {"SHUTDOWN"}, time.millis(), ("Elevator" + elevator));
                             }
                             m = eCommunicator.rpc_send(new Message(new String[] {"CloseDoor"}, time.millis(),"Elevator" + elevator));
@@ -530,6 +543,7 @@ public class Scheduler implements Runnable {
                     //this request has been fulfilled, remove from the queue
                     queue.remove(msg);
                     //really don't need to send anything to the elevator
+                    eCommunicator.send(new Message(new String[] {m.getToFrom() + " Arrived at it's passenger's location successfully"}, time.millis(), "Output"));
                     return new Message(new String[]{"nothing"}, time.millis(), m.getToFrom());
                 }else {
                     //doors are closed, good...
@@ -544,11 +558,11 @@ public class Scheduler implements Runnable {
                                 scheduling = true;
                                 //reset the timeTillRequest, not sure what that is rn...
                                 Message m = Scheduling(elevator);
-                                if (m.getData()[0].equals("SHUTDOWN")) {
-                                    System.out.println("System Shutdown");
-                                    currentState = null;
-                                    return;
-                                }
+                                //if (m.getData()[0].equals("SHUTDOWN")) {
+                                //    System.out.println("System Shutdown");
+                                //    currentState = null;
+                                //    return;
+                                //}
                                 //they'll send a reply, we should wait
                                 eCommunicator.rpc_send(m);
                                 scheduling = false;
@@ -569,7 +583,7 @@ public class Scheduler implements Runnable {
                             System.out.println("didn't get a good response for timeFor");
                         }
                     }
-
+                    eCommunicator.send(new Message(new String[] {m.getToFrom() + " Arrived at the floor request location"}, time.millis(), "Output"));
                     //notNecessary since the elevator already goes to the button press floor on arrival.
                     return new Message(new String[]{"goTo", request, "notNecessary"}, time.millis(), m.getToFrom());
                 }
@@ -577,6 +591,7 @@ public class Scheduler implements Runnable {
         }
         //send a new elevator
         currentState = State.GETDATA;
+        eCommunicator.send(new Message(new String[] {m.getToFrom() + " is unresponsive or stuck, shutting down..."}, time.millis(), "Output"));
         return new Message(new String[]{"SHUTDOWN"}, time.millis(), m.getToFrom());
     }
 

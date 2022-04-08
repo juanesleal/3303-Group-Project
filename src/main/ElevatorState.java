@@ -140,8 +140,8 @@ class EmptyTState extends ElevatorState {
         //always arrive at the top of the q
         q.removeFirst();
         super.elevatorRef.setQueue(q);
-        String[] s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
-        while (!s[0].equals("OK")) {
+        String[] s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler", 10000);
+        if (!s[0].equals("OK")) {
             s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
         }
         //Change states.
@@ -312,16 +312,12 @@ class FullTState extends ElevatorState {
         q.removeFirst();
         super.elevatorRef.setQueue(q);
         System.out.println("sending Arrived");
-        String[] s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+        String[] s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler", 10000);
         //after attempts, we give up...
-        int attempts = 0;
-        while (!(s[0].equals("OK")) && attempts < 3) {
-            attempts++;
+        //int attempts = 0;
+        if (!(s[0].equals("OK"))) {
             System.out.println("arrive received: " + s[0]);
-            s = super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
-        }
-        if (attempts == 3) {
-            super.elevatorRef.setShutdown(true);
+            super.elevatorRef.send(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
         }
         //wait for pass to exit
         super.elevatorRef.next("WaitExit");
