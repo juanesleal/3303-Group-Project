@@ -15,13 +15,15 @@ public class Floor implements Runnable{
     private LinkedList<String[]> messages = new LinkedList<>();
     private int nextFloorReq = 0;
     private long lastEventTime = Integer.MAX_VALUE;
+    private String filename;
 
 
     /**
      * Generates a new floor subsystem that communicates using the specified EventHolder
      *  specifies the eventHolder for shared memory.
      */
-    public Floor() {
+    public Floor(String fn) {
+        filename = fn;
         Communicator com = new Communicator();
         floorCommunicator = new Communicator(com.FLOOR_PORT, "Floor");
     }
@@ -37,7 +39,7 @@ public class Floor implements Runnable{
     }
 
     public static void main(String[] args) {
-        Floor f = new Floor();
+        Floor f = new Floor("FloorEventText.txt");
         f.run();
     }
 
@@ -48,7 +50,7 @@ public class Floor implements Runnable{
     private void readAndSort () {
         try {
             //    Read floor data values from file
-            BufferedReader br = new BufferedReader(new FileReader("FloorEventTest.txt"));
+            BufferedReader br = new BufferedReader(new FileReader(filename));
 
             String line;
 
@@ -124,7 +126,9 @@ public class Floor implements Runnable{
                 //it's been more then 10 seconds since we sent the last event'
                 //scheduler wants next event, we've already sorted the events...
                 floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
-                nextFloorReq++;
+                if (nextFloorReq != 5) {
+                    nextFloorReq++;
+                }
             } else {
                 floorCommunicator.send(new Message(new String[] {"NoEvent"}, time.millis(), m.getToFrom()));
             }

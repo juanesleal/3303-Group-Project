@@ -6,11 +6,19 @@ public class Initializer {
         Thread scheduler, floor;
 
         int elevCount = 1;
-        if (args.length != 0) {
+        String filename = "";
+        if (args.length > 1) {
+            System.out.println("INITIALIZER: " + args[1]);
+            filename += args[1];
             elevCount = Integer.parseInt(args[0]);
         }
 
-        floor = new Thread(new Floor(), "Floor");
+        if (!filename.equals("")) {
+            floor = new Thread(new Floor(filename), "Floor");
+        }else {
+            floor = new Thread(new Floor("FloorEventTest.txt"), "Floor");
+        }
+
         floor.start();
 
         scheduler = new Thread(new Scheduler(elevCount), "Scheduler");

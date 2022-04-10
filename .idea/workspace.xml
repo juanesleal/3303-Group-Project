@@ -4,31 +4,14 @@
     <list default="true" id="d01e2e36-47bd-41fb-ae76-0df9006cd414" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FloorEventTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/FloorEventTest.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Communicator.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Communicator.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Elevator.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Elevator.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/ElevatorMovement$1.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/ElevatorMovement.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/ElevatorMovement.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/ElevatorState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/ElevatorState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/EmptyTState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/EmptyTState.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Floor.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Floor.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/FullTState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/FullTState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/IdleState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/IdleState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/InitState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/InitState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Output.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Output.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$3.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$4.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$State.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$State.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Initializer.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Initializer.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/WaitPassEntryState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/WaitPassEntryState.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/WaitPassExitState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/WaitPassExitState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/Communicator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Communicator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/Elevator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Elevator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/ElevatorMovement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/ElevatorMovement.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/ElevatorState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/ElevatorState.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/Floor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Floor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/Output.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Output.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/Initializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Initializer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/Scheduler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Scheduler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -63,7 +46,7 @@
       <recent name="C:\Users\Cameron\Documents\SYSC3303\3303-Group-Project\src\main" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Initializer2">
+  <component name="RunManager" selected="Application.Initializer4">
     <configuration name="Elevator1" type="Application" factoryName="Application" temporary="true">
       <option name="MAIN_CLASS_NAME" value="main.Elevator" />
       <module name="3303-Group-Project" />
@@ -107,6 +90,14 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Initializer4" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="main.Initializer" />
+      <module name="3303-Group-Project" />
+      <option name="PROGRAM_PARAMETERS" value="4 &quot;FloorEventTest.txt&quot;" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Output" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="main.Output" />
       <module name="3303-Group-Project" />
@@ -145,6 +136,7 @@
       <item itemvalue="Application.Elevator2" />
       <item itemvalue="Application.Scheduler2" />
       <item itemvalue="Application.Initializer2" />
+      <item itemvalue="Application.Initializer4" />
       <item itemvalue="Application.Elevator1" />
       <item itemvalue="Application.Floor" />
       <item itemvalue="Application.Scheduler" />
@@ -186,38 +178,54 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="537" y="430" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1649413816043">
+    <state x="537" y="430" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1649553969776">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="537" y="430" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649413816043" />
+    <state x="537" y="430" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649553969776" />
     <state x="1085" y="402" key="#com.intellij.ide.util.MemberChooser" timestamp="1649525728161">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1085" y="402" key="#com.intellij.ide.util.MemberChooser/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649525728161" />
-    <state x="1009" y="485" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1649413814328">
+    <state x="1009" y="485" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1649552739046">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1009" y="485" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649413814328" />
+    <state x="1009" y="485" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649552739046" />
     <state x="1060" y="456" key="FileChooserDialogImpl" timestamp="1649463277572">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1060" y="456" key="FileChooserDialogImpl/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649463277572" />
-    <state width="2517" height="623" key="GridCell.Tab.0.bottom" timestamp="1649552199690">
+    <state width="2517" height="891" key="GridCell.Tab.0.bottom" timestamp="1649554378397">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="623" key="GridCell.Tab.0.bottom/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649552199690" />
-    <state width="2517" height="623" key="GridCell.Tab.0.center" timestamp="1649552199690">
+    <state width="2517" height="891" key="GridCell.Tab.0.bottom/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649554378397" />
+    <state width="2517" height="891" key="GridCell.Tab.0.center" timestamp="1649554378397">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="623" key="GridCell.Tab.0.center/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649552199690" />
-    <state width="2517" height="623" key="GridCell.Tab.0.left" timestamp="1649552199690">
+    <state width="2517" height="891" key="GridCell.Tab.0.center/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649554378397" />
+    <state width="2517" height="891" key="GridCell.Tab.0.left" timestamp="1649554378397">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="623" key="GridCell.Tab.0.left/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649552199690" />
-    <state width="2517" height="623" key="GridCell.Tab.0.right" timestamp="1649552199690">
+    <state width="2517" height="891" key="GridCell.Tab.0.left/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649554378397" />
+    <state width="2517" height="891" key="GridCell.Tab.0.right" timestamp="1649554378397">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2517" height="623" key="GridCell.Tab.0.right/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649552199690" />
+    <state width="2517" height="891" key="GridCell.Tab.0.right/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649554378397" />
+    <state width="2517" height="492" key="GridCell.Tab.1.bottom" timestamp="1649553891444">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2517" height="492" key="GridCell.Tab.1.bottom/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649553891444" />
+    <state width="2517" height="492" key="GridCell.Tab.1.center" timestamp="1649553891444">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2517" height="492" key="GridCell.Tab.1.center/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649553891444" />
+    <state width="2517" height="492" key="GridCell.Tab.1.left" timestamp="1649553891444">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2517" height="492" key="GridCell.Tab.1.left/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649553891444" />
+    <state width="2517" height="492" key="GridCell.Tab.1.right" timestamp="1649553891444">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2517" height="492" key="GridCell.Tab.1.right/0.0.2560.1400/2560.258.1920.1040@0.0.2560.1400" timestamp="1649553891444" />
     <state x="976" y="525" key="com.intellij.ide.util.TipDialog" timestamp="1648939208351">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

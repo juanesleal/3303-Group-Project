@@ -429,7 +429,7 @@ public class Scheduler implements Runnable {
                 }
             };
             //schedule a timer for the amount of time it will take them to get there.
-            int time = (int) ((1000) * Math.floor(Double.parseDouble(timeTillRequest[min])) - 500);
+            int time = (int) ((1000) * Math.floor(Double.parseDouble(timeTillRequest[min])));
             System.out.println("seting timer to go off in time: " + time);
             timer.schedule(checkArrive, time);
         }
@@ -604,7 +604,7 @@ public class Scheduler implements Runnable {
                     while (tryAgain) {
                         m = eCommunicator.rpc_send(new Message(new String[]{"timeFor", msg.getData()[4]}, time.millis(), m.getToFrom()));
                         try {
-                            System.out.println("Scheduling timer for " + ((1000) * Math.floor(Double.parseDouble(m.getData()[0])) - 500) + " milliseconds===============================");
+                            System.out.println("Scheduling timer for " + ((1000) * Math.floor(Double.parseDouble(m.getData()[0]))) + " milliseconds===============================");
                             timer.schedule(checkArrive, (int) ((1000) * Math.floor(Double.parseDouble(m.getData()[0]))));
                             tryAgain = false;
                         } catch (NumberFormatException e) {

@@ -188,11 +188,12 @@ class WaitPassEntryState extends ElevatorState {
                 super.elevatorRef.setShutdown(true);
                 return;
             }
-            while (!s[0].equals("OpenDoors")) {
+            while (!s[0].equals("OpenDoor")) {
                 //sending availible till we get a proper response
                 s = super.elevatorRef.send(new String[]{"NoButtonPress", super.elevatorRef.getRequestTime()}, "Scheduler");
             }
             super.elevatorRef.setDoorsOpen(true);
+            super.elevatorRef.reply(new String[] {"OK"}, "Scheduler");
         }
         String[] s = super.elevatorRef.send(new String[]{"ButtonReq", super.elevatorRef.getRequestTime()}, "Floor");
         //check that we got a reply
