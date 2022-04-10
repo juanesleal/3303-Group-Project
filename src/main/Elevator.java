@@ -24,13 +24,12 @@ public class Elevator implements Runnable{
     private LinkedList<Integer> queue = new LinkedList<Integer>();
     private boolean floorOk = false;
     private boolean doorsOpen = false;
-    private float travelFault;
+    private int travelFault;
     private int doorFault;
     private String requestTime;
     private boolean shutdown = false;
-    private boolean arrived = false;
-    public boolean inMain = false;
     public int elevNum;
+    public boolean alreadyGoing = false;
 
     Clock time = Clock.systemDefaultZone();
 
@@ -49,37 +48,40 @@ public class Elevator implements Runnable{
 
         while (!shutdown) {
             entry();
-            if (!arrived) {
-                inMain = true;
-                //receive a message
-                Message m = communicator.receive(0);
-                System.out.println("state: " + currentState);
-                System.out.println("main data received: " + m.getData()[0]);
-                if (m.getData()[0].equals("timeFor")) {
-                    timeFor(Integer.parseInt(m.getData()[1]));
-                } else if (m.getData()[0].equals("goTo") && !(m.getData()[2].equals("notNecessary"))) {
-                    travelFault = Float.parseFloat(m.getData()[1].charAt(1) + "");
-                    travelFault = Integer.parseInt(m.getData()[1].charAt(2) + "");
-                    //check whether the goTo is being ignored
-                    if (goTo(Integer.parseInt(m.getData()[1].charAt(0) + ""))) {
-                        //set the request time since it uniquely identifies the request, we need this on arrival
-                        requestTime = m.getData()[2];
-                    }
-                } else if (m.getData()[0].equals("DoorStatus")) {
-                    if (doorsOpen) {
-                        reply(new String[]{"Status", "Open"}, "Scheduler");
-                    } else {
-                        reply(new String[]{"Status", "Closed"}, "Scheduler");
-                    }
-                } else if (m.getData()[0].equals("SHUTDOWN")) {
-                    shutdown = true;
-                    System.out.println("Elevator SHUTDOWN");
+            //receive a message
+            Message m = communicator.receive(0);
+            System.out.println("state: " + currentState);
+            System.out.println("main data received: " + m.getData()[0]);
+            if (m.getData()[0].equals("timeFor")) {
+                timeFor(Integer.parseInt(m.getData()[1]));
+            } else if (m.getData()[0].equals("goTo") && !(m.getData()[2].equals("notNecessary"))) {
+                int parseMe = Integer.parseInt(m.getData()[1]);
+                int floor = (int) Math.floor(parseMe*0.01);
+                travelFault = (int) Math.floor((parseMe - (floor * 100))* 0.1);
+                doorFault = (parseMe - (floor * 100) - (travelFault * 10));
+                System.out.println("Parsing GoTo: " + floor + " travelFault: " + travelFault + " doorF: " + doorFault + "===================================================================");
+                //check whether the goTo is being ignored
+                if (goTo(floor)) {
+                    //set the request time since it uniquely identifies the request, we need this on arrival
+                    requestTime = m.getData()[2];
                 }
-                inMain = false;
-                notif();
-            } else {
-                //we already did all the work when the arrive func was called.
-                arrived = false;
+            } else if (m.getData()[0].equals("DoorStatus")) {
+                if (doorsOpen) {
+                    reply(new String[]{"Status", "Open"}, "Scheduler");
+                } else {
+                    reply(new String[]{"Status", "Closed"}, "Scheduler");
+                }
+            } else if (m.getData()[0].equals("OpenDoor")) {
+               doorsOpen = true;
+               reply(new String[] {"OK"}, "Scheduler");
+            } else if (m.getData()[0].equals("CloseDoor")) {
+                doorsOpen = false;
+                reply(new String[] {"OK"}, "Scheduler");
+            } else if (m.getData()[0].equals("Arrived?")) {
+                checkArrive();
+            } else if (m.getData()[0].equals("SHUTDOWN")) {
+                shutdown = true;
+                System.out.println("Elevator SHUTDOWN");
             }
             System.out.println("state: "+ currentState);
         }
@@ -159,24 +161,11 @@ public class Elevator implements Runnable{
     }
 
     public boolean goTo(int floor) {
-
         return states[currentState].goTo(floor);
     }
 
-    public synchronized void notif() {
-        notifyAll();
-    }
-
-    public synchronized void arrive() {
-        arrived = true;
-        while(inMain) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        states[currentState].arrive();
+    public void checkArrive() {
+        states[currentState].checkArrive();
     }
 
     public LinkedList<Integer> getQueue() {

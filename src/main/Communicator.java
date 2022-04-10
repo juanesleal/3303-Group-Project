@@ -122,11 +122,11 @@ public class Communicator {
         // Form a String from the byte array.
         String received = new String(data,0,len);
         System.out.println("String: " + received + "\n");
-        System.out.println("Bytes: ");
-        for (int i = 0; i < len; i++) {
-            System.out.print(receivePacket.getData()[i]);
-            System.out.print(",");
-        }
+        //System.out.println("Bytes: ");
+        //for (int i = 0; i < len; i++) {
+        //    System.out.print(receivePacket.getData()[i]);
+        //    System.out.print(",");
+        //}
         System.out.println("\n");
         //parse the received data into a Message
         Object[] args = new Object[]{data, null};
@@ -142,6 +142,7 @@ public class Communicator {
         //who are we, who are we sending to?
         //FIXME
         int sendPort = 0;
+        String sendTo = "Someone";
         if (request[request.length - 1] == SCHEDULER_BYTE[1] && request[request.length - 2] == SCHEDULER_BYTE[0]) {
             //this means we are sending to the scheduler, we still need to know who we are.
             if (me == "Floor") {
@@ -150,17 +151,21 @@ public class Communicator {
             }else if (me.substring(0, (me.length() - 1)).equals("Elevator")) {
                 sendPort = SCHEDULER_EPORT;
             }
+            sendTo = "Scheduler";
         }else if (request[request.length - 1] == FLOOR_BYTE[1] && request[request.length - 2] == FLOOR_BYTE[0]) {
             // we are not sending to Scheduler, we may be an error, unless we are the Scheduler.
             if (me.equals("Scheduler") || me.substring(0, (me.length() - 1)).equals("Elevator")) {
                 //who are we sending it to
                 //sending to floor
                 sendPort = FLOOR_PORT;
+                sendTo = "Floor";
             }
         }else if (request[request.length - 1] == OUTPUT_BYTE[1] && request[request.length - 2] == OUTPUT_BYTE[0]) {
             sendPort = OUTPUT_PORT;
+            sendTo = "Output";
         } else if (request[request.length - 2] == ELEVATOR_BYTE && !(me.substring(0, (me.length() - 1)).equals("Elevator"))) {
             sendPort = received.get("Elevator" + request[request.length - 1]);
+            sendTo = "Elevator" + request[request.length - 1];
         }
 
         System.out.println(request[request.length - 2]);
@@ -174,17 +179,17 @@ public class Communicator {
         }
 
         System.out.println(me + ": Sending packet:");
-        System.out.println("To "  + ": " + sendPacket.getAddress());
+        System.out.println("To " + sendTo + ": " + sendPacket.getAddress());
         System.out.println("Destination host port: " + sendPacket.getPort());
         int len = sendPacket.getLength();
         System.out.println("Length: " + len);
         System.out.print("Containing: ");
         System.out.println("String: " + new String(sendPacket.getData(),0,len));
-        System.out.print("Bytes: ");
-        for (int i = 0; i < request.length; i++) {
-            System.out.print(request[i]);
-            System.out.print(",");
-        }
+        //System.out.print("Bytes: ");
+        //for (int i = 0; i < request.length; i++) {
+         //   System.out.print(request[i]);
+         //   System.out.print(",");
+        //}
         System.out.println("\n");
         // Send the datagram packet to the server via the send/receive socket.
 

@@ -113,6 +113,7 @@ public class Floor implements Runnable{
         }
 
         if (m.getData()[0].equals("EventReq")) {
+
             if (lastEventTime == Integer.MAX_VALUE) {
                 lastEventTime = time.millis();
                 //scheduler wants next event, we've already sorted the events...
@@ -124,7 +125,11 @@ public class Floor implements Runnable{
                 //scheduler wants next event, we've already sorted the events...
                 floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
                 nextFloorReq++;
+            } else {
+                floorCommunicator.send(new Message(new String[] {"NoEvent"}, time.millis(), m.getToFrom()));
             }
+            System.out.println("Floor EventReq, Time: " + time.millis() + " last Event: " + lastEventTime + " time since last: " + (time.millis() - lastEventTime));
+
         }
 
 
