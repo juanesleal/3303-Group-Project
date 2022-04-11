@@ -26,10 +26,13 @@ public class Elevator implements Runnable{
     private boolean doorsOpen = false;
     private int travelFault;
     private int doorFault;
-    private String requestTime;
-    private boolean shutdown = false;
+    private String requestTime = null;
+    private String requestTime2 = null;use this second request time fow when we are picking someone up on the way to somewhere else...
+    private boolean shutdown = false;maybe start trying to handle the emptyState picking someone up ont the way to somewhere else....
     public int elevNum;
     public boolean alreadyGoing = false;
+    public boolean onTheWay = false;
+    public boolean full = false;
 
     Clock time = Clock.systemDefaultZone();
 
@@ -61,9 +64,13 @@ public class Elevator implements Runnable{
                 doorFault = (parseMe - (floor * 100) - (travelFault * 10));
                 System.out.println("Parsing GoTo: " + floor + " travelFault: " + travelFault + " doorF: " + doorFault + "===================================================================");
                 //check whether the goTo is being ignored
-                if (goTo(floor)) {
+                if (goTo(floor, m.getData()[3])) {
                     //set the request time since it uniquely identifies the request, we need this on arrival
-                    requestTime = m.getData()[2];
+                    if (requestTime != null) {
+                        requestTime2 = m.getData()[2];
+                    }else {
+                        requestTime = m.getData()[2];
+                    }
                 }
             } else if (m.getData()[0].equals("DoorStatus")) {
                 if (doorsOpen) {
@@ -160,12 +167,15 @@ public class Elevator implements Runnable{
         states[currentState].timeFor(floor);
     }
 
-    public boolean goTo(int floor) {
-        return states[currentState].goTo(floor);
+    public boolean goTo(int floor, String s) {
+        return states[currentState].goTo(floor, s);
     }
 
     public void checkArrive() {
         states[currentState].checkArrive();
+        //delete the old request times...
+        requestTime2 = null;
+        requestTime = null;
     }
 
     public LinkedList<Integer> getQueue() {
@@ -174,6 +184,14 @@ public class Elevator implements Runnable{
 
     public String getRequestTime() {
         return requestTime;
+    }
+
+    public boolean getOnTheWay() {
+        return onTheWay;
+    }
+
+    public void setOnTheWay(boolean onTheWay) {
+        this.onTheWay = onTheWay;
     }
 
     public void setQueue(LinkedList<Integer> q) {

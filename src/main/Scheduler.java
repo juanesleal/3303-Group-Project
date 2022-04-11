@@ -174,7 +174,7 @@ public class Scheduler implements Runnable {
             queue.add(m);
             //set timeTillRequest
             System.out.println("floor request on floor: " + m.getData()[2]);
-            timeTillRequest[0] = m.getData()[2] + " "  + m.getData()[5] + " " + m.getData()[6] + " " + m.getData()[1];
+            timeTillRequest[0] = m.getData()[2] + " "  + m.getData()[5] + " " + m.getData()[6] + " " + m.getData()[1] + " " + m.getData()[3];
             //go to the next state
             currentState = next();
         }else if (m.getData()[0].equals("NoEvent")) {
@@ -240,18 +240,21 @@ public class Scheduler implements Runnable {
         }
         inMethod = true;
         for (Message m : queue) {
-            if ((!m.getData()[2].equals("Arrived")) && queue.size() > 1) {
-                //this means this request has not yet reached the request floor
-                System.out.println("handling previous or next: " + m.getData()[2]);
+            if (m.getData()[0].contains("UNHANDLED")) {
+                System.out.println("handling previous" + m.getData()[2]);
+                //remove the unhandled thingy...
+                m.getData()[0] = m.getData()[0].substring(0, 10);
                 //this is basically resetting the request so that we now handle the previous one.
-                timeTillRequest[0] = m.getData()[2]  + " " +  m.getData()[5] + " " + m.getData()[6] + " " + m.getData()[1];
+                timeTillRequest[0] = m.getData()[2]  + " " +  m.getData()[5] + " " + m.getData()[6] + " " + m.getData()[1] + " " + m.getData()[3];
+                //break lol we should actually handle these unhandled requests.......nkjlbgrsnjbgrfd
+                break;
             }
         }
         Message m;
 
         System.out.println(timeTillRequest[0]);
-        String[] request = timeTillRequest[0].split(" ", 4);
-        System.out.println(request[0]);
+        String[] request = timeTillRequest[0].split(" ", 6);
+        System.out.println(request[4]);
         //start processing a request, maybe seperate this into a function....
         //now loop and ask everyone for their floor times.
         while (next != timeTillRequest.length) {
@@ -262,13 +265,12 @@ public class Scheduler implements Runnable {
             if (m.getData()[0].equals("0.0")) {
                 //Elevator sends time = 0 whenever they have the fastest possible time, immediately send them.
                 timeTillRequest[next] = m.getData()[0];
-                m = eCommunicator.rpc_send(new Message(new String[]{"goTo", request[0] + request[1] + request[2], request[3]}, time.millis(), "Elevator" + next));
+                m = eCommunicator.rpc_send(new Message(new String[]{"goTo", request[0] + request[1] + request[2], request[3], request[4]}, time.millis(), "Elevator" + next));
                 if (m.getData()[0].equals("OK")) {
                     eCommunicator.send(new Message(new String[] {"Scheduler sent Elevator " + next + " to go to floor " + timeTillRequest[0].substring(0, 3)}, time.millis(), "Output"));
                     System.out.println("got OKr");
                     //awesome, set timer, do stuff..
                     //elevator sent, update timeTillRequest
-                    timeTillRequest[0] += " Ordered";
                     int elevNo = next;
                     checkArrive = new TimerTask() {
                         @Override
@@ -293,16 +295,19 @@ public class Scheduler implements Runnable {
                     };
                     if (m.getData()[1] != null) {
                         if (m.getData()[1].equals("Already Here")) {
+                            eCommunicator.send(new Message(new String[] {"Timer set for Elevator " + elevNo + " to go to floor " + request[0] + " in " + 0 + "ms"}, time.millis(), "Output"));
                             //schedule a timer with avery short delay, since the elevator is likely already there...
                             timer.schedule(checkArrive, 0);
                         }else {
                             //weird
                             System.out.println("Elevator at 0 seconds sent something weird============ " + m.getData()[1]);
+                            eCommunicator.send(new Message(new String[] {"Timer set for Elevator " + elevNo + " to go to floor " + request[0] + " in " + 5000 + "ms"}, time.millis(), "Output"));
                             //it may be going to the next floor, wait a default 5 seconds
                             timer.schedule(checkArrive, 5000);
                         }
                     }else {
                         //it may be going to the next floor, wait a default 5 seconds
+                        eCommunicator.send(new Message(new String[] {"Timer set for Elevator " + elevNo + " to go to floor " + request[0] + " in " + 5000 + "ms"}, time.millis(), "Output"));
                         timer.schedule(checkArrive, 5000);
                     }
 
@@ -358,13 +363,14 @@ public class Scheduler implements Runnable {
             currentState = State.EVENTWAIT;
             //reset next
             next = 1;
+            unhandled(request[3]);
             inMethod = false;
             notifyAll();
             return;
         }
 
         //send a goTo to the minimum elevator
-        m = eCommunicator.rpc_send(new Message(new String[]{"goTo", request[0] + request[1] + request[2], request[3]}, time.millis(), "Elevator" + min));
+        m = eCommunicator.rpc_send(new Message(new String[]{"goTo", request[0] + request[1] + request[2], request[3], request[4]}, time.millis(), "Elevator" + min));
         System.out.println("Received a GoTo response: " + m.getData()[0]);
         while(!m.getData()[0].equals("OK")) {
             //note this is destructive, we wish to look for a new Minimum
@@ -385,27 +391,56 @@ public class Scheduler implements Runnable {
                 currentState = State.EVENTWAIT;
                 //reset next
                 next = 1;
+                unhandled(request[3]);
                 inMethod = false;
                 notifyAll();
                 return;
             }
             //min recalculated...
             //send a goTo to the minimum elevator
-            m = eCommunicator.rpc_send(new Message(new String[]{"goTo", request[0] + request[1] + request[2], request[3]}, time.millis(), "Elevator" + min));
+            m = eCommunicator.rpc_send(new Message(new String[]{"goTo", request[0] + request[1] + request[2], request[3], request[4]}, time.millis(), "Elevator" + min));
             System.out.println("Received a GoTo response: " + m.getData()[0]);
         }
         eCommunicator.send(new Message(new String[] {"Scheduler sent Elevator " + min + " to go to floor " + request[0]}, time.millis(), "Output"));
         //elevator sent, update timeTillRequest
-        timeTillRequest[0] += " Ordered";
+
         if (m.getData()[1] != null) {
             //do not set a new timer if the elevator is already set to go there.
             if (m.getData()[1].equals("Already Going")) {
                 //don't set a timer, they have one
-            }else {
-                System.out.println("ERROR==============================GETDATA");
+            }else if (m.getData()[1].equals("On the way")){
+                //we need to set a timer and shit...
+                System.out.println("Scheduling timer for " + ((1000) * Math.round(Double.parseDouble(timeTillRequest[min]))) + " milliseconds===============================");
+                int finalMin = min;
+                checkArrive = new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (currentState != null) {
+                            System.out.println("==========Elevator scheduled for first arrival non 0=============");
+                            scheduling = true;
+                            //reset the timeTillRequest, not sure what that is rn...
+                            Message m = Scheduling(finalMin);
+                            //if (m.getData()[0].equals("SHUTDOWN")) {
+                            //    System.out.println("System Shutdown");
+                            //    currentState = null;
+                            //    return;
+                            //}
+                            //they'll send a reply, we should wait
+                            eCommunicator.send(m);
+                            scheduling = false;
+                            inMethod = false;
+                            taskDone();
+                        }
+                    }
+                };
+                eCommunicator.send(new Message(new String[] {"Timer set for Elevator " + min + " to go to floor " + request[0] + " in " + timeTillRequest[min] + "ms"}, time.millis(), "Output"));
+                //schedule a timer for the amount of time it will take them to get there.
+                int time = (int) ((1000) * Math.round(Double.parseDouble(timeTillRequest[min])));
+                System.out.println("seting timer to go off in time: " + time);
+                timer.schedule(checkArrive, time);
             }
         }else {
-            System.out.println("Scheduling timer for " + ((1000) * Math.floor(Double.parseDouble(timeTillRequest[min]))) + " milliseconds===============================");
+            System.out.println("Scheduling timer for " + ((1000) * Math.round(Double.parseDouble(timeTillRequest[min]))) + " milliseconds===============================");
             int finalMin = min;
             checkArrive = new TimerTask() {
                 @Override
@@ -428,8 +463,9 @@ public class Scheduler implements Runnable {
                     }
                 }
             };
+            eCommunicator.send(new Message(new String[] {"Timer set for Elevator " + min + " to go to floor " + request[0] + " in " + timeTillRequest[min] + "ms"}, time.millis(), "Output"));
             //schedule a timer for the amount of time it will take them to get there.
-            int time = (int) ((1000) * Math.floor(Double.parseDouble(timeTillRequest[min])));
+            int time = (int) ((1000) * Math.round(Double.parseDouble(timeTillRequest[min])));
             System.out.println("seting timer to go off in time: " + time);
             timer.schedule(checkArrive, time);
         }
@@ -458,11 +494,18 @@ public class Scheduler implements Runnable {
         System.out.println("Received a Maybe Arrived: " + m.getData()[0]);
         int chances = 0;
         while (!m.getData()[0].equals("Arrived") || !m.getToFrom().equals("Elevator" + elevator)) {
-            if (m.getData()[0] .equals("TimeOut") || chances == 2) {
+            if (m.getData()[0] .equals("TimeOut")) {
                 //shutdown
                 System.out.println("Scheduling Timed out");
                 //send a new elevator
                 currentState = State.GETDATA;
+                return new Message(new String[] {"SHUTDOWN"}, time.millis(), ("Elevator" + elevator));
+            }
+            if (chances == 2) {
+                //send a new elevator
+                currentState = State.GETDATA;
+                //change ordered back, when they send NO getData()[2] is the request time
+                unhandled(m.getData()[2]);
                 return new Message(new String[] {"SHUTDOWN"}, time.millis(), ("Elevator" + elevator));
             }
             if (m.getData()[0].equals("NO")) {
@@ -471,6 +514,14 @@ public class Scheduler implements Runnable {
                     Thread.sleep(500);
                 } catch (InterruptedException e){
                     e.printStackTrace();
+                }
+                if (m.getData()[1].equals("WAITPASSENTRY") || m.getData()[1].equals("WAITPASSEXIT")) {
+                    System.out.println("waiting for passenger to enter or exit on the way to a destination...AAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
                 }
                 chances++;
             }
@@ -519,13 +570,14 @@ public class Scheduler implements Runnable {
                                     //send a new elevator
                                     currentState = State.GETDATA;
                                     eCommunicator.send(new Message(new String[]{m.getToFrom() + " refuses to open it's doors, shutting it down..."}, time.millis(), "Output"));
+                                    unhandled(msg.getData()[1]);
                                     return new Message(new String[]{"SHUTDOWN"}, time.millis(), ("Elevator" + elevator));
                                 }
                                 m = eCommunicator.rpc_send(new Message(new String[]{"OpenDoor"}, time.millis(), "Elevator" + elevator), 3000);
                             }
                         }
                         //setting a shorter timeout...
-                        m = eCommunicator.receive(100);
+                        m = eCommunicator.receive(500);
                     }
 
                     //check that their doors have closed...
@@ -542,6 +594,7 @@ public class Scheduler implements Runnable {
                         //send a new elevator
                         currentState = State.GETDATA;
                         eCommunicator.send(new Message(new String[] {m.getToFrom() + " is unresponsive, shutting down..."}, time.millis(), "Output"));
+                        unhandled(msg.getData()[1]);
                         return new Message(new String[] {"SHUTDOWN"}, time.millis(), ("Elevator" + elevator));
                     }
                     if (m.getData()[1] != null && m.getData()[1].equals("Open")) {
@@ -554,6 +607,7 @@ public class Scheduler implements Runnable {
                                 //send a new elevator
                                 currentState = State.GETDATA;
                                 eCommunicator.send(new Message(new String[] {m.getToFrom() + " refuses to close it's doors..."}, time.millis(), "Output"));
+                                unhandled(msg.getData()[1]);
                                 return new Message(new String[] {"SHUTDOWN"}, time.millis(), ("Elevator" + elevator));
                             }
                             m = eCommunicator.rpc_send(new Message(new String[] {"CloseDoor"}, time.millis(),"Elevator" + elevator));
@@ -604,8 +658,9 @@ public class Scheduler implements Runnable {
                     while (tryAgain) {
                         m = eCommunicator.rpc_send(new Message(new String[]{"timeFor", msg.getData()[4]}, time.millis(), m.getToFrom()));
                         try {
-                            System.out.println("Scheduling timer for " + ((1000) * Math.floor(Double.parseDouble(m.getData()[0]))) + " milliseconds===============================");
-                            timer.schedule(checkArrive, (int) ((1000) * Math.floor(Double.parseDouble(m.getData()[0]))));
+                            System.out.println("Scheduling timer for " + ((1000) * Math.round(Double.parseDouble(m.getData()[0]))) + " milliseconds===============================");
+                            eCommunicator.send(new Message(new String[] {"Timer set for " + m.getToFrom() + " to go to floor " + request + " in " + ((1000) * Math.round(Double.parseDouble(m.getData()[0]))) + "ms"}, time.millis(), "Output"));
+                            timer.schedule(checkArrive, (int) ((1000) * Math.round(Double.parseDouble(m.getData()[0]))));
                             tryAgain = false;
                         } catch (NumberFormatException e) {
                             System.out.println("didn't get a good response for timeFor");
@@ -620,6 +675,7 @@ public class Scheduler implements Runnable {
         //send a new elevator
         currentState = State.GETDATA;
         eCommunicator.send(new Message(new String[] {m.getToFrom() + " is unresponsive or stuck, shutting down..."}, time.millis(), "Output"));
+        unhandled(msg.getData()[1]);
         return new Message(new String[]{"SHUTDOWN"}, time.millis(), m.getToFrom());
     }
 
@@ -627,6 +683,15 @@ public class Scheduler implements Runnable {
         System.out.println("TASK DONE:: LOOK HERE+===============================");
         //helper func for the timerTasks so the output isn't super gross
         notifyAll();
+    }
+
+    private void unhandled(String msg) {
+        for (Message m : queue) {
+            if (m.getData()[1].equals(msg)) {
+                m.getData()[1] = "UNHANDLED" + m.getData()[1];
+                System.out.println("aaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAA: " + m.getData()[0] + " floor: " + m.getData()[2]);
+            }
+        }
     }
 }
 

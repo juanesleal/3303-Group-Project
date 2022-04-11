@@ -49,17 +49,31 @@ public class ElevatorMovement {
         //check if we are already going there
         if (destination != dest) {
             //get our velocity
-            double velocity = getVelocity();
+            double velocity = Math.abs(getVelocity());
             double timeTo = arriveWhen(dest, velocity);
 
             long current = time.millis();
 
             if (velocity != 0) {
-                //FIXME
-                //slow down
                 if (timeTo != 2000) {
-                    //find out when we need to decelerate.
-                    decelTime = current + ((int) (timeTo - accelToMax) * 1000);
+                    accelTime = current;
+                    //first, do we hit maxVel?
+                    //how far would we travel to get to maxvel from vurrent vel?
+                    if (velocity == maxVelocity) {
+                        //at maxVel rn
+                        velForDest = maxVelocity;
+                        decelTime = current + (int)((timeTo - accelToMax)* 1000);
+                    }else {
+                        //fairly understandible equation, the lest if block of arriveWhen uses the same...
+                        double toVelforDest = (timeTo - (velocity/acceleration))/2;
+                        decelTime = accelTime + (int) (toVelforDest * 1000);
+                        velForDest = (velocity + (acceleration * toVelforDest));
+                        if (velForDest > maxVelocity) {
+                            //problem, recalculate
+                            velForDest = maxVelocity;
+                            decelTime = current + (int)((timeTo - accelToMax)* 1000);
+                        }
+                    }
                 }
             } else {
                 //find out how long we need to accelerate and if/when to start decelerating...
@@ -198,7 +212,7 @@ public class ElevatorMovement {
             //we've arrived;
             elevatorRef.reply(new String[] {"Elevator " + elevatorRef.elevNum + " is currently " + distance + "m above floor " + prevFloor}, "Output");
             arrive();
-            elevatorRef.reply(new String[] {"Elevator " + elevatorRef.elevNum + " is currently at " + prevFloor}, "Output");
+            elevatorRef.reply(new String[] {"Elevator " + elevatorRef.elevNum + " at " + prevFloor}, "Output");
             return prevFloor;
         } else if (destination > prevFloor) {
             //we are going up.
@@ -233,6 +247,9 @@ public class ElevatorMovement {
                 //many scenarios to return an error here...
                 return ti;
             }
+            if ((floor < getFloor() && velForDest > 0) || (floor > getFloor() && velForDest < 0)) {
+                return ti;
+            }
         }
         if (velocity == 0) {
             if (distance > (distanceForMax * 2)) {
@@ -247,7 +264,7 @@ public class ElevatorMovement {
                 ti = 2 * timeDistance(velocity, acceleration, 2000, distance/2);
                 System.out.println("arriveWhen: not accelerating to max, currently stationary");
             }
-        }else if (velocity == maxVelocity || velocity == -maxVelocity) {
+        }else if (velocity == maxVelocity) {
             //we are travelling somewhere at maxVelocity
             //can we slow down in time?
             //since we are at max velocity, we know exactly our breaking distance (distanceForMax)
@@ -276,14 +293,24 @@ public class ElevatorMovement {
                     }
                     double breakingDist = timeDistance(Math.abs(velForDest), -acceleration, ((decelTime - accelTime) * 0.001), 2000);
                     if (distance > breakingDist) {
-                        //how long till we start to decellerate?
-                        ti = ((decelTime - time.millis()) * 0.001);
-                        //how long it takes to decellerate
-                        ti += timeDistance(Math.abs(velForDest), -acceleration, 2000, breakingDist);
+                        if (Math.abs(velForDest) == maxVelocity) {
+                            //we are still accelerating
+                            //if we were at max vel or if we were decel, it would've been handled
+                            ti = (accelToMax - ((time.millis() - accelTime)*0.001));
+                            //how long we will decel for
+                            ti += accelToMax;
+                            //how long we will stay at max velocity
+                            ti += (decelTime - (accelTime + (accelToMax * 1000))) * 0.001;
+                        } else {
+                            //how long till we start to decellerate?
+                            ti = ((decelTime - time.millis()) * 0.001);
+                            //how long it takes to decellerate
+                            ti += timeDistance(Math.abs(velForDest), -acceleration, 2000, breakingDist);
+                        }
                         System.out.println("arriveWhen: enough breaking distance, decel soon or already...");
                     }
                 }else {
-                    if (floor < destination && floor >= getFloor()) {
+                    if ((floor < destination && floor >= getFloor() && velForDest > 0) || (velForDest < 0 && floor > destination && floor <= getFloor())) {
                         //did some fairly complex math for this...
                         //basically, the amount of braking distance needed is the distance it took to get to the existing velocity
                         //then you need to add the distance it would take to get to the maximum velocity for this destination
@@ -310,13 +337,13 @@ public class ElevatorMovement {
             //they want us to solve for time.
             //this is a quadratic equation...
             double determ = Math.sqrt(Math.abs(Math.pow(velocity, 2) - ((4 * (acceleration) / 2) * (0 - distance))));
-            double soln = (0 - velocity) + determ;
-            if (soln < 0 && acceleration > 0) {
+            double soln = ((0 - velocity) + determ)/acceleration;
+            if (soln < 0) {
                 //wrong soln, get the other
-                soln = (0 - velocity) - determ;
+                soln = ((0 - velocity) - determ)/acceleration;
             }
-            System.out.println("time traveling at: " + velocity  + " accelerating at: " + acceleration + " for " + distance + "m is: " + (soln/Math.abs(acceleration)));
-            return (soln / (acceleration));
+            System.out.println("time traveling at: " + velocity  + " accelerating at: " + acceleration + " for " + distance + "m is: " + soln);
+            return (soln);
         }else if (distance == 2000) {
             //the real world equation for this: ^x = vi*t + 1/2(a)(t^2)
             double dist = velocity * time;

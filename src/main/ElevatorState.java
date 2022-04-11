@@ -15,7 +15,7 @@ abstract class ElevatorState {
 
     abstract void entry();
     abstract void timeFor(int floor);
-    abstract boolean goTo(int floor);
+    abstract boolean goTo(int floor, String dir);
     abstract void checkArrive();
 }
 
@@ -40,7 +40,7 @@ class InitState extends ElevatorState {
 
     }
 
-    boolean goTo(int floor) {
+    boolean goTo(int floor, String dir) {
         return false;
     }
 
@@ -69,7 +69,7 @@ class IdleState extends ElevatorState {
         super.elevatorRef.reply(new String[]{msg}, "Scheduler");
     }
 
-    boolean goTo(int floor) {
+    boolean goTo(int floor, String dir) {
         //Travel fault is a float from 0-1 that represents what proportion of the goTo request should be filled
         if (super.elevatorRef.getTravelFault() > 0 && !(super.elevatorRef.geteM().getFloor() == floor)) {
             //we travel only to the floor that's somewhere between here and the desired destination.
@@ -111,17 +111,28 @@ class EmptyTState extends ElevatorState {
             String msg = ""  + super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity());
             super.elevatorRef.reply(new String[]{msg}, "Scheduler");
         }else {
-            super.elevatorRef.reply(new String[]{"NotAvailible"}, "Scheduler");
+            double time = super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity());
+            if (time == 2000) {
+                //user pressed a button that is in the opposite direction that we are going in
+                super.elevatorRef.reply(new String[]{"NotAvailible"}, "Scheduler");
+            } else {
+                super.elevatorRef.reply(new String[]{time + ""}, "Scheduler");
+            }
         }
 
     }
 
-    boolean goTo(int floor) {
+    boolean goTo(int floor, String dir) {
         if (super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity()) == 2000) {
             //2000 is an error it means we can't get to the given floor
             super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
             return false;
         }else {
+            if (super.elevatorRef.getVelocity() > 0 && !(dir.equals("Up")) || super.elevatorRef.getVelocity() < 0 && !(dir.equals("Down"))) {
+                //user pressed a button that is in the opposite direction that we are going in
+                super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
+                return false;
+            }
             //Travel fault is a float from 0-1 that represents what proportion of the goTo request should be filled
             if (super.elevatorRef.getTravelFault() > 0) {
                 //we travel only to the floor that's somewhere between here and the desired destination.
@@ -139,7 +150,7 @@ class EmptyTState extends ElevatorState {
     }
 
     void checkArrive() {
-        if (super.elevatorRef.geteM().getFloor() == super.elevatorRef.getQueue().getFirst()) {
+        if (super.elevatorRef.geteM().getFloor() == super.elevatorRef.getQueue().getFirst() && !(super.elevatorRef.getTravelFault() == 1)) {
             super.elevatorRef.reply(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
             //now we will remove from queue and transition:
             //remove shit from queue
@@ -223,7 +234,14 @@ class WaitPassEntryState extends ElevatorState {
         //add their destination to the top of the Q??
         LinkedList<Integer> q = super.elevatorRef.getQueue();
         //always add passengers destination to the bottom of the queue idk if this works
-        q.addFirst(button);
+        double curFloor = elevatorRef.getFloor();
+        if (curFloor < button  && button < q.getFirst() || curFloor > button && button > q.getFirst()) {
+            System.out.println("Button is before my previous, going to button first...--------------------------------------=====================AAAAAAAAAAAAAAAAAAAAAAAAA");
+            q.addFirst(button);
+        }else {
+            System.out.println("Button is after my previous, going to button first...--------------------------------------=====================AAAAAAAAAAAAAAAAAAAAAAAAA");
+            q.addLast(button);
+        }
         super.elevatorRef.setQueue(q);
         super.elevatorRef.setFloorOk(true);
         super.elevatorRef.next("Full");
@@ -233,7 +251,7 @@ class WaitPassEntryState extends ElevatorState {
         super.elevatorRef.reply(new String[]{"NotAvailible"}, "Scheduler");
     }
 
-    boolean goTo(int floor) {
+    boolean goTo(int floor, String dir) {
         super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
         return false;
         /*
@@ -261,6 +279,7 @@ class FullTState extends ElevatorState {
     public void entry() {
         System.out.println("==============================Full Travel Entry===================================");
         //move to dest at top of Q
+        super.elevatorRef.full = true;
         super.elevatorRef.geteM().move(super.elevatorRef.getQueue().getFirst());
     }
 
@@ -275,7 +294,7 @@ class FullTState extends ElevatorState {
         }
     }
 
-    boolean goTo(int floor) {
+    boolean goTo(int floor, String dir) {
         LinkedList<Integer> q = super.elevatorRef.getQueue();
         if (q.getFirst().equals(floor)) {
             //we are already going where we were told to go...
@@ -289,6 +308,11 @@ class FullTState extends ElevatorState {
             super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
             return false;
         } else {
+            if (super.elevatorRef.getVelocity() > 0 && dir.equals("Down") || super.elevatorRef.getVelocity() < 0 && dir.equals("Up")) {
+                //user pressed a button that is in the opposite direction that we are going in
+                super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
+                return false;
+            }
             //Travel fault is a float from 0-1 that represents what proportion of the goTo request should be filled
             if (super.elevatorRef.getTravelFault() > 0) {
                 //we travel only to the floor that's somewhere between here and the desired destination.
@@ -299,6 +323,7 @@ class FullTState extends ElevatorState {
             super.elevatorRef.setQueue(q);
             super.elevatorRef.setFloorOk(true);
             super.elevatorRef.geteM().move(floor);
+            super.elevatorRef.setOnTheWay(true);
             super.elevatorRef.reply(new String[]{"OK", "On the way"}, "Scheduler");
             return true;
         }
@@ -333,6 +358,14 @@ class FullTState extends ElevatorState {
             if (super.elevatorRef.alreadyGoing) {
                 //are we expecting to receive someone when we arrive?
                 super.elevatorRef.alreadyGoing = false;
+                super.elevatorRef.full = false;
+                super.elevatorRef.next("WaitEntry");
+                return;
+            }
+            if (super.elevatorRef.getOnTheWay()) {
+                //receive someone on the way in...
+                super.elevatorRef.setOnTheWay(false);
+                super.elevatorRef.full = true;
                 super.elevatorRef.next("WaitEntry");
                 return;
             }
@@ -367,6 +400,16 @@ class WaitPassExitState extends ElevatorState {
             super.elevatorRef.setDoorsOpen(true);
             //door stuck open
         }
+        if (super.elevatorRef.getQueue().size() > 0) {
+            //still have places to be
+            if (super.elevatorRef.full) {
+                //fullTravelState
+                super.elevatorRef.next("Full");
+            }else {
+                super.elevatorRef.next("Empty");
+            }
+            return;
+        }
         //all good, set Idle;
         super.elevatorRef.next("Idle");
     }
@@ -375,7 +418,7 @@ class WaitPassExitState extends ElevatorState {
 
     }
 
-    boolean goTo(int floor) {
+    boolean goTo(int floor, String dir) {
         return false;
     }
 
