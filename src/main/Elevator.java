@@ -26,13 +26,13 @@ public class Elevator implements Runnable{
     private boolean doorsOpen = false;
     private int travelFault;
     private int doorFault;
-    private String requestTime = null;
-    private String requestTime2 = null;use this second request time fow when we are picking someone up on the way to somewhere else...
-    private boolean shutdown = false;maybe start trying to handle the emptyState picking someone up ont the way to somewhere else....
+    private String requestTime = "";
+    private String requestTime2 = "";//use this second request time fow when we are picking someone up on the way to somewhere else...
+    private boolean shutdown = false;//maybe start trying to handle the emptyState picking someone up ont the way to somewhere else....
     public int elevNum;
     public boolean alreadyGoing = false;
     public boolean onTheWay = false;
-    public boolean full = false;
+    public boolean toFirst = true;
 
     Clock time = Clock.systemDefaultZone();
 
@@ -62,15 +62,19 @@ public class Elevator implements Runnable{
                 int floor = (int) Math.floor(parseMe*0.01);
                 travelFault = (int) Math.floor((parseMe - (floor * 100))* 0.1);
                 doorFault = (parseMe - (floor * 100) - (travelFault * 10));
-                System.out.println("Parsing GoTo: " + floor + " travelFault: " + travelFault + " doorF: " + doorFault + "===================================================================");
                 //check whether the goTo is being ignored
                 if (goTo(floor, m.getData()[3])) {
+                    System.out.println("Parsing GoTo: " + floor + " travelFault: " + travelFault + " doorF: " + doorFault + "===================================================================");
                     //set the request time since it uniquely identifies the request, we need this on arrival
-                    if (requestTime != null) {
+                    if (requestTime != "") {
                         requestTime2 = m.getData()[2];
                     }else {
                         requestTime = m.getData()[2];
                     }
+                }else {
+                    //set back to defaults
+                    travelFault = 0;
+                    doorFault = 0;
                 }
             } else if (m.getData()[0].equals("DoorStatus")) {
                 if (doorsOpen) {
@@ -86,6 +90,11 @@ public class Elevator implements Runnable{
                 reply(new String[] {"OK"}, "Scheduler");
             } else if (m.getData()[0].equals("Arrived?")) {
                 checkArrive();
+            } else if (m.getData()[0].equals("WhenNext")) {
+                if (!queue.isEmpty()) {
+                    String msg = "" + eM.arriveWhen(queue.getFirst(), eM.getVelocity());
+                    reply(new String[]{msg}, m.getToFrom());
+                }
             } else if (m.getData()[0].equals("SHUTDOWN")) {
                 shutdown = true;
                 System.out.println("Elevator SHUTDOWN");
@@ -159,6 +168,14 @@ public class Elevator implements Runnable{
         this.shutdown = shutdown;
     }
 
+    public void setRequestTime(String requestTime) {
+        this.requestTime = requestTime;
+    }
+
+    public void setRequestTime2(String requestTime2) {
+        this.requestTime2 = requestTime2;
+    }
+
     public void entry() {
         states[currentState].entry();
     }
@@ -173,9 +190,6 @@ public class Elevator implements Runnable{
 
     public void checkArrive() {
         states[currentState].checkArrive();
-        //delete the old request times...
-        requestTime2 = null;
-        requestTime = null;
     }
 
     public LinkedList<Integer> getQueue() {
@@ -185,6 +199,11 @@ public class Elevator implements Runnable{
     public String getRequestTime() {
         return requestTime;
     }
+
+    public String getRequestTime2() {
+        return requestTime2;
+    }
+
 
     public boolean getOnTheWay() {
         return onTheWay;

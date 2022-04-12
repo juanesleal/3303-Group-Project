@@ -123,11 +123,19 @@ class EmptyTState extends ElevatorState {
     }
 
     boolean goTo(int floor, String dir) {
-        if (super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity()) == 2000) {
+        //if (super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity()) == 2000) {
             //2000 is an error it means we can't get to the given floor
+        if (super.elevatorRef.getQueue().getFirst().equals(floor)) {
+            //we are already going where we were told to go...
+            super.elevatorRef.setFloorOk(true);
+            super.elevatorRef.reply(new String[]{"OK", "Already Going"}, "Scheduler");
+            return true;
+        }else {
             super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
             return false;
-        }else {
+        }
+
+        /*}else {
             if (super.elevatorRef.getVelocity() > 0 && !(dir.equals("Up")) || super.elevatorRef.getVelocity() < 0 && !(dir.equals("Down"))) {
                 //user pressed a button that is in the opposite direction that we are going in
                 super.elevatorRef.reply(new String[]{"NO"}, "Scheduler");
@@ -147,10 +155,14 @@ class EmptyTState extends ElevatorState {
             super.elevatorRef.reply(new String[]{"OK"}, "Scheduler");
             return true;
         }
+
+         */
+
     }
 
     void checkArrive() {
         if (super.elevatorRef.geteM().getFloor() == super.elevatorRef.getQueue().getFirst() && !(super.elevatorRef.getTravelFault() == 1)) {
+            System.out.println("==================Sending Arrived at===================" + super.elevatorRef.getQueue().getFirst());
             super.elevatorRef.reply(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
             //now we will remove from queue and transition:
             //remove shit from queue
@@ -161,6 +173,7 @@ class EmptyTState extends ElevatorState {
             //Change states.
             super.elevatorRef.next("WaitEntry");
         }else {
+            System.out.println("did not arrive at requested location, trying to go to: " + super.elevatorRef.getQueue().getFirst() + " travelFault: " + super.elevatorRef.getTravelFault());
             super.elevatorRef.reply(new String[]{"NO", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
             //no state transitions or queue change
         }
@@ -174,6 +187,11 @@ class WaitPassEntryState extends ElevatorState {
 
     public void entry() {
         System.out.println("==============================Wait Entry Entry===================================");
+        String temp = super.elevatorRef.getRequestTime();
+        if (!elevatorRef.toFirst) {
+            // im lazy so i'll set a temp then set it back.
+            super.elevatorRef.setRequestTime(super.elevatorRef.getRequestTime2());
+        }
         if (super.elevatorRef.getDoorFault() == 0) {
             //we've arrived, open doors
             super.elevatorRef.setDoorsOpen(true);
@@ -189,7 +207,6 @@ class WaitPassEntryState extends ElevatorState {
             //we've arrived, open doors
             super.elevatorRef.setDoorsOpen(true);
             //door stuck open
-        }else if (super.elevatorRef.getDoorFault() == 2) {
             //close doors
             super.elevatorRef.setDoorsOpen(false);
             //doors stuck shut, tell Scheduler we have no button press
@@ -229,18 +246,27 @@ class WaitPassEntryState extends ElevatorState {
             s = super.elevatorRef.send(new String[]{"ButtonPress", super.elevatorRef.getRequestTime(),"" + button}, "Scheduler");
         }
 
+        //set it back to what it was...
+        super.elevatorRef.setRequestTime(temp);
 
         //awesome, we've received the passenger...
         //add their destination to the top of the Q??
         LinkedList<Integer> q = super.elevatorRef.getQueue();
         //always add passengers destination to the bottom of the queue idk if this works
         double curFloor = elevatorRef.getFloor();
-        if (curFloor < button  && button < q.getFirst() || curFloor > button && button > q.getFirst()) {
-            System.out.println("Button is before my previous, going to button first...--------------------------------------=====================AAAAAAAAAAAAAAAAAAAAAAAAA");
-            q.addFirst(button);
+        if (super.elevatorRef.getQueue().size() > 0) {
+            if (curFloor < button && button < q.getFirst() || curFloor > button && button > q.getFirst()) {
+                System.out.println("Button is before my previous, going to button first...--------------------------------------=====================AAAAAAAAAAAAAAAAAAAAAAAAA");
+                q.addFirst(button);
+                super.elevatorRef.toFirst = false;
+            } else {
+                System.out.println("Button is after my previous, going to button first...--------------------------------------=====================AAAAAAAAAAAAAAAAAAAAAAAAA");
+                q.addLast(button);
+                super.elevatorRef.toFirst = true;
+            }
         }else {
-            System.out.println("Button is after my previous, going to button first...--------------------------------------=====================AAAAAAAAAAAAAAAAAAAAAAAAA");
-            q.addLast(button);
+            q.addFirst(button);
+            super.elevatorRef.toFirst = true;
         }
         super.elevatorRef.setQueue(q);
         super.elevatorRef.setFloorOk(true);
@@ -279,14 +305,13 @@ class FullTState extends ElevatorState {
     public void entry() {
         System.out.println("==============================Full Travel Entry===================================");
         //move to dest at top of Q
-        super.elevatorRef.full = true;
         super.elevatorRef.geteM().move(super.elevatorRef.getQueue().getFirst());
     }
 
     void timeFor(int floor) {
         //just tell them when i'll arrive, shouldn't complicate it any more...
         String msg = ""  + super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity());
-        if (super.elevatorRef.geteM().arriveWhen(floor, super.elevatorRef.geteM().getVelocity()) == 2000) {
+        if (Double.parseDouble(msg) == 2000) {
             //2000 is an error it means we can't get to the given floor
             super.elevatorRef.reply(new String[]{"NotAvailible"}, "Scheduler");
         }else {
@@ -324,6 +349,8 @@ class FullTState extends ElevatorState {
             super.elevatorRef.setFloorOk(true);
             super.elevatorRef.geteM().move(floor);
             super.elevatorRef.setOnTheWay(true);
+            //we are now not going to the first request...
+            super.elevatorRef.toFirst = false;
             super.elevatorRef.reply(new String[]{"OK", "On the way"}, "Scheduler");
             return true;
         }
@@ -353,25 +380,45 @@ class FullTState extends ElevatorState {
             q.removeFirst();
             super.elevatorRef.setQueue(q);
             System.out.println("sending Arrived");
-            super.elevatorRef.reply(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+            //gotta figure out which request time to send to the Scheduler...
+            if (!(super.elevatorRef.toFirst)) {
+                super.elevatorRef.reply(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime2()}, "Scheduler");
+                if (!super.elevatorRef.onTheWay) {
+                    //we arrived at the passenger button for the second request...
+                    super.elevatorRef.setRequestTime2("");
+                    super.elevatorRef.toFirst = true;
+                }
+            }else {
+                //going to first location
+                super.elevatorRef.reply(new String[]{"Arrived", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+                //going to second request after this
+                if (!super.elevatorRef.getRequestTime2().equals("")) {
+                    super.elevatorRef.toFirst = false;
+                }
+            }
+
+
             //wait for pass to exit
             if (super.elevatorRef.alreadyGoing) {
                 //are we expecting to receive someone when we arrive?
                 super.elevatorRef.alreadyGoing = false;
-                super.elevatorRef.full = false;
                 super.elevatorRef.next("WaitEntry");
                 return;
             }
             if (super.elevatorRef.getOnTheWay()) {
                 //receive someone on the way in...
                 super.elevatorRef.setOnTheWay(false);
-                super.elevatorRef.full = true;
                 super.elevatorRef.next("WaitEntry");
                 return;
             }
             super.elevatorRef.next("WaitExit");
         }else {
-            super.elevatorRef.reply(new String[]{"NO", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+            System.out.println("did not arrive at requested location, trying to go to: " + super.elevatorRef.getQueue().getFirst());
+            if (!super.elevatorRef.toFirst) {
+                super.elevatorRef.reply(new String[]{"NO", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime(), "ONTHEWAY"}, "Scheduler");
+            }else {
+                super.elevatorRef.reply(new String[]{"NO", "" + super.elevatorRef.geteM().getFloor(), super.elevatorRef.getRequestTime()}, "Scheduler");
+            }
             //no state transitions or queue change
         }
     }
@@ -402,14 +449,10 @@ class WaitPassExitState extends ElevatorState {
         }
         if (super.elevatorRef.getQueue().size() > 0) {
             //still have places to be
-            if (super.elevatorRef.full) {
-                //fullTravelState
-                super.elevatorRef.next("Full");
-            }else {
-                super.elevatorRef.next("Empty");
-            }
+            super.elevatorRef.next("Full");
             return;
         }
+        super.elevatorRef.setRequestTime("");
         //all good, set Idle;
         super.elevatorRef.next("Idle");
     }

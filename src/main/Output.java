@@ -44,7 +44,7 @@ public class Output {
 		o.frame.setVisible(true);
 
 
-		String[] floorReqs = new String[40];
+		String[] floorReqs = new String[1000];
 		int next = 0;
 		o.dataCount = 1;
 		Message m = o.dCommunicator.receive(0);

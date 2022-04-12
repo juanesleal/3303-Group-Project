@@ -220,6 +220,7 @@ public class Communicator {
             //add each string data member with a 1 following
             String[] data = m.getData();
             for (int i = 0; i < data.length; i++) {
+                System.out.println("trying to send a packet, putting: " + data[i]);
                 bb.put(data[i].getBytes());
                 //follow each data member with a 1 so we can tell strings apart from the next data thing
                 //if this is the last string, no 1 follows

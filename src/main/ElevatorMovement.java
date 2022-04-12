@@ -242,7 +242,8 @@ public class ElevatorMovement {
         System.out.println("dist: " + distance);
         velocity = Math.abs(velocity);
         double ti = 2000;
-        if (destination > 0 && velocity != 0) {
+        //if (destination > 0 && velocity != 0) {
+        if (destination > 0) {
             if (floor > prevFloor && velForDest < 0 || (floor < prevFloor && velForDest > 0) || (floor > destination && velForDest > 0) || (floor < destination && velForDest < 0)) {
                 //many scenarios to return an error here...
                 return ti;

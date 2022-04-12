@@ -98,7 +98,7 @@ public class Floor implements Runnable{
         }
     }
 
-    private void floorMessageCheck (){
+    private boolean floorMessageCheck (){
         Clock time = Clock.systemDefaultZone();
 
         Message m = floorCommunicator.receive(2000);
@@ -118,27 +118,32 @@ public class Floor implements Runnable{
         }
 
         if (m.getData()[0].equals("EventReq")) {
-
-            if (lastEventTime == Integer.MAX_VALUE) {
-                lastEventTime = time.millis();
-                //scheduler wants next event, we've already sorted the events...
-                floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
-                nextFloorReq++;
-            }else if ((time.millis() - lastEventTime) >= 5000) {
-                lastEventTime = time.millis();
-                //it's been more then 10 seconds since we sent the last event'
-                //scheduler wants next event, we've already sorted the events...
-                floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
-                if (nextFloorReq != 5) {
+            if (nextFloorReq < (messages.size() - 1)) {
+                if (lastEventTime == Integer.MAX_VALUE) {
+                    lastEventTime = time.millis();
+                    //scheduler wants next event, we've already sorted the events...
+                    floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
                     nextFloorReq++;
+                } else if ((time.millis() - lastEventTime) >= 5000) {
+                    lastEventTime = time.millis();
+                    //it's been more then 10 seconds since we sent the last event'
+                    //scheduler wants next event, we've already sorted the events...
+                    floorCommunicator.send(new Message(messages.get(nextFloorReq), time.millis(), m.getToFrom()));
+                    if (nextFloorReq != (messages.size() - 1)) {
+                        nextFloorReq++;
+                    } else {
+                        floorCommunicator.send(new Message(new String[]{"NoMoreEvents"}, time.millis(), m.getToFrom()));
+                    }
+                } else {
+                    floorCommunicator.send(new Message(new String[]{"NoEvent"}, time.millis(), m.getToFrom()));
                 }
+                System.out.println("Floor EventReq, Time: " + time.millis() + " last Event: " + lastEventTime + " time since last: " + (time.millis() - lastEventTime));
             } else {
-                floorCommunicator.send(new Message(new String[] {"NoEvent"}, time.millis(), m.getToFrom()));
+                floorCommunicator.send(new Message(new String[]{"NoMoreEvents"}, time.millis(), m.getToFrom()));
+                return false;
             }
-            System.out.println("Floor EventReq, Time: " + time.millis() + " last Event: " + lastEventTime + " time since last: " + (time.millis() - lastEventTime));
 
         }
-
-
+        return true;
     }
 }
