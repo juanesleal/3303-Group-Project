@@ -2,34 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d01e2e36-47bd-41fb-ae76-0df9006cd414" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FloorEventTest2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/FloorEventTest2.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.txt" beforeDir="false" afterPath="$PROJECT_DIR$/README.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Communicator.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Communicator.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Elevator.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Elevator.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/ElevatorMovement.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/ElevatorMovement.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/EmptyTState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/EmptyTState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Floor.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Floor.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/FullTState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/FullTState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Initializer.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Initializer.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Output.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Output.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$3.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$4.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$5.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$5.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$State.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler$State.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/Scheduler.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/WaitPassEntryState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/WaitPassEntryState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/3303-Group-Project/main/WaitPassExitState.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/3303-Group-Project/main/WaitPassExitState.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/Communicator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Communicator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/Elevator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Elevator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/ElevatorMovement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/ElevatorMovement.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/ElevatorState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/ElevatorState.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/Floor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Floor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/Initializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Initializer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/Output.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Output.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/Scheduler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Scheduler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,14 +22,13 @@
   <component name="ProjectId" id="26w86qOHpbVxL6TXHgeLSE05DIr" />
   <component name="ProjectViewState">
     <option name="flattenPackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../COMP3004/Project" />
+    <property name="last_opened_file_path" value="$USER_HOME$/COMP3004/Project" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -180,7 +152,7 @@
       </list>
     </option>
   </component>
-  <component name="SpellCheckerSettings" BundledDictionaries="0" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" Dictionaries="0" CorrectionsLimit="5" DefaultDictionary="application-level" UseSingleDictionary="true" />
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
