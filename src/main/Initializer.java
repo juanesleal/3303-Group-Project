@@ -29,7 +29,7 @@ public class Initializer implements Runnable {
         //IMPORTANT: ARGS[0] is the amount of elevators we have... if null, 1 elevator is the default
         Thread scheduler, floor;
 
-        
+
 
         if (!filename.equals("")) {
             floor = new Thread(new Floor(filename), "Floor");

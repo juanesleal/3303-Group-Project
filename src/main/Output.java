@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 
-public class Output {
+public class Output implements Runnable{
 
 	private Communicator dCommunicator;
 	private JFrame frame;
@@ -15,9 +15,15 @@ public class Output {
 	private Object[] nextData = {"0", "0", "0", "0", "0"};
 
 
+
+
 	public Output() {
 		Communicator com = new Communicator();
 		dCommunicator = new Communicator(com.OUTPUT_PORT, "Output");
+	}
+
+	public Object[][] getTableData(){
+		return tableData;
 	}
 
     public static void main(String[] args) {
@@ -152,5 +158,55 @@ public class Output {
 		}
 	}
 
+	@Override
+	public void run() {
+
+		frame = new JFrame("My First GUI");
+		//frame.setLayout(new BorderLayout());
+		//JScrollBar vbar=new JScrollBar(JScrollBar.VERTICAL, 30, 40, 0, 500);
+		//vbar.addAdjustmentListener(new AdjustmentListener() {
+		//	@Override
+		//	public void adjustmentValueChanged(AdjustmentEvent e) {
+		//		frame.repaint();
+		//	}
+		//});
+		//frame.getContentPane().add(vbar, BorderLayout.EAST);
+		tableData = new Object[500][5];
+		tableData[0] = new Object[] {"1", "2", "3", "4", "0"};
+
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(700,1000);
+		DataTable table = new DataTable(tableData);
+		table.setOpaque(true);
+		frame.setContentPane(table);
+		frame.pack();
+		frame.setVisible(true);
+
+
+		String[] floorReqs = new String[1000];
+		int next = 0;
+		dataCount = 1;
+		Message m = dCommunicator.receive(0);
+		while(!m.getData()[0].equals("TimeOut")) {
+
+			parseReceived(m);
+
+
+			//if (m.getData()[0].length() > 22 && m.getData()[0].substring(0, 23).equals ("Scheduler sent Elevator") || m.getData()[0].length() > 19 &&  m.getData()[0].substring(10, 20).equals ("Arrived at") ) {
+			floorReqs[next++] = m.getData()[0] + "	" + m.getTime();
+			//}
+
+
+			//should be a condition here to stop the communicator
+			System.out.println("==========================FloorReqs and arrivals=====================");
+			for (int i = 0; i < next; i++) {
+				System.out.println(floorReqs[i]);
+			}
+			System.out.println("==========================FloorReqs and arrivals=====================");
+			System.out.println("The output is being sent");
+			m = dCommunicator.receive(20000);
+			System.out.println("Output message is:" + m.getData()[0]);
+		}
+	}
 }
 
