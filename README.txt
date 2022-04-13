@@ -39,3 +39,4 @@ The Project also includes FloorEventTest2.txt Which is the test calues for the c
 Set-Up and Running Instructions:
 -Run Output, then initializer with the program arguments 4, "FloorEventTest2.txt"
 for easiest comprehension, focus on the first few evens or search the output for the keywords "Already Here", "Already Going", "SHUTDOWN" and "On the way"
+the full initializer takes approximately 3-4 minutes
