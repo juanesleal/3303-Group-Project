@@ -34,7 +34,7 @@ public class Initializer implements Runnable {
         if (!filename.equals("")) {
             floor = new Thread(new Floor(filename), "Floor");
         }else {
-            floor = new Thread(new Floor("FloorEventTest.txt"), "Floor");
+            floor = new Thread(new Floor("FloorEventTest2.txt"), "Floor");
         }
 
         floor.start();

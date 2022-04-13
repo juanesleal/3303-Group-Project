@@ -129,12 +129,12 @@ public class Output {
 			}
 		}
 		int zeroCount = 0;
-		//for (int i =0; i < 4; i++) {
-		//	if (nextData[i] == "0") {
-		//		zeroCount++;
-		//	}
-		//}
-		if (zeroCount == 0) {
+		for (int i =0; i < 4; i++) {
+			if (nextData[i] == "0") {
+				zeroCount++;
+			}
+		}
+		if (zeroCount <= 1) {
 			if (dataCount == 1) {
 				firstTime = m.getTime();
 				nextData[4] = 0;

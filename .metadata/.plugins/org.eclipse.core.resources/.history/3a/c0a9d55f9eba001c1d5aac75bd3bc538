@@ -1,0 +1,58 @@
+package test;
+
+import main.*;
+
+
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+
+
+public class IntegrationTest implements Runnable {
+    Thread initializeElevator = new Thread(new Initializer(4, ""), "Initializer");
+    Output o = new Output();
+    Thread outputData = new Thread((Runnable) o, "Output");
+
+    @Test
+    public void testMainInit() {
+
+
+        String fileName = "";
+        if(fileName == "") {
+            assertEquals(fileName, "");
+            initializeElevator.run();
+            System.out.println("Generated file used!");
+        }
+        else if(fileName == "FloorEventTest.txt"){
+            assertEquals(fileName, "FloorEventTest.txt");
+            System.out.println("Given file used!");
+        }
+    }
+    
+    @Test
+    public void testMainOutput(){
+        outputData.run();
+        Object[][] tableData = new Object[40][4];//o.getTableData();
+
+
+        int[] arrivals = new int[20];
+        int nextArrival = 0;
+
+        for (int i =0; i < tableData.length; i++) {
+            for (int i2 =0; i2 < tableData[i].length; i++) {
+                if ((Math.floor(Double.parseDouble((String) tableData[i][i2])) == Double.parseDouble((String) tableData[i][i2]))) {
+                    arrivals[nextArrival] = (int) Double.parseDouble((String) tableData[i][i2]);
+                    nextArrival++;
+                }
+            }
+        }
+
+    }
+
+
+
+    @Override
+    public void run() {
+        testMainInit();
+        testMainOutput();
+    }
+}

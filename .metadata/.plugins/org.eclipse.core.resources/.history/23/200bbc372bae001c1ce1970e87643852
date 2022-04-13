@@ -1,3 +1,0 @@
-module Iteration4 {
-	requires junit;
-}

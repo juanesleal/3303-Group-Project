@@ -1,8 +1,0 @@
-package test;
-
-import org.junit.Test;
-import java.base.*;
-
-public class junittest {
-
-}
